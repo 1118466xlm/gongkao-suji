@@ -786,7 +786,7 @@ function renderIdiomList(cards, gid) {
     return `<div class="idiom-item${hl}" data-card-id="${c.id}" data-gid="${gid}" onclick="window._toggleIdiomHighlight('${c.id}','${gid}')"><span class="idiom-word">${word}</span><span class="idiom-def">${def}</span></div>`;
   }).join('');
   return `
-    <div class="hl-input-wrap"><input class="hl-input" id="hl-input-${gid}" placeholder="输入高亮词，空格分隔" value="${escapeHTML(state.customHlWords[gid] || '')}" onchange="window._setCustomHl('${gid}', this.value)" onkeydown="if(event.key==='Enter'){this.blur();window._setCustomHl('${gid}', this.value)}"><span class="hl-hint">回车确认 ｜ 点词条标记</span></div>
+    <div class="hl-input-wrap"><input class="hl-input" id="hl-input-${gid}" placeholder="输入高亮词，空格分隔" value="${escapeHTML(state.customHlWords[gid] || '')}" onkeydown="if(event.key==='Enter'){var v=this.value;this.blur();window._setCustomHl('${gid}', v)}"><span class="hl-hint">回车确认 ｜ 点词条标记</span></div>
     <div class="idiom-list">${items}</div>
     <div class="sync-bar" style="display:flex;gap:8px;">
       <button class="sync-btn" onclick="window._importFile()" style="flex:1;background:var(--s4l);color:#C97A5A;">📄 导入TXT</button>
