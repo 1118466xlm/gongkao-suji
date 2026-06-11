@@ -1,4 +1,4 @@
-const CACHE = 'gongkao-v9';
+const CACHE = 'gongkao-v10';
 const PAGE = '/gongkao-suji/';
 
 self.addEventListener('install', function(e) {
@@ -36,7 +36,7 @@ self.addEventListener('fetch', function(e) {
   // 其他资源：network-first，fallback到缓存
   e.respondWith(
     fetch(e.request).then(function(r) {
-      if (r.ok && e.request.method === 'GET') {
+      if (r.ok && r.request.method === 'GET') {
         var rc = r.clone();
         caches.open(CACHE).then(function(c) { c.put(e.request, rc); });
       }

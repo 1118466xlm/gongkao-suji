@@ -2120,7 +2120,7 @@ async function init() {
   if ('caches' in window) {
     setTimeout(function() {
       var pageHTML = '<!DOCTYPE html>\n' + document.documentElement.outerHTML;
-      caches.open('gongkao-v9').then(function(c) {
+      caches.open('gongkao-v10').then(function(c) {
         return c.put('/gongkao', new Response(pageHTML, {
           headers: { 'Content-Type': 'text/html; charset=utf-8' }
         }));
