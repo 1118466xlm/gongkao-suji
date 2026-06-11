@@ -1,0 +1,2142 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,user-scalable=no,viewport-fit=cover">
+<meta name="theme-color" content="#1E1E2E">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="公考速记">
+<title>公考速记</title>
+<style>
+/* ============ 基础变量 ============ */
+:root {
+  --s1: #81C8B5; --s1l: #E8F5F0;
+  --s2: #A8B8E0; --s2l: #EDF0FA;
+  --s3: #C4A8D6; --s3l: #F3EDF8;
+  --s4: #F0B896; --s4l: #FDF0E9;
+  --s5: #F5D782; --s5l: #FFFBE8;
+  --s6: #E8988E; --s6l: #FCEAE8;
+  --bg: #FAFAFA; --card: #FFF; --text: #333; --sub: #999; --border: #EEE;
+  --radius: 12px; --shadow: 0 2px 12px rgba(0,0,0,.06);
+  --font-xs: 11px; --font-sm: 13px; --font-md: 15px; --font-lg: 18px;
+}
+*, *::before, *::after { box-sizing:border-box; margin:0; padding:0; }
+html { height:100%; overflow:hidden; }
+body {
+  font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif;
+  background:var(--bg); color:var(--text); height:100%;
+  display:flex; flex-direction:column; overflow:hidden;
+  -webkit-tap-highlight-color:transparent; user-select:none;
+}
+
+/* ============ 顶部栏 ============ */
+.topbar {
+  display:flex; align-items:center; padding:12px 16px; gap:12px;
+  background:var(--card); border-bottom:1px solid var(--border);
+  flex-shrink:0; z-index:10;
+}
+.topbar h1 { font-size:var(--font-lg); font-weight:700; flex:1; white-space:nowrap; }
+.topbar-btn {
+  width:36px; height:36px; border:none; border-radius:50%; background:transparent;
+  font-size:18px; cursor:pointer; display:flex; align-items:center; justify-content:center;
+  transition:background .15s; flex-shrink:0;
+}
+.topbar-btn:active { background:var(--border); }
+
+/* ============ 搜索栏 ============ */
+.search-wrap {
+  padding:0 16px 8px; background:var(--card); flex-shrink:0; display:none;
+}
+.search-wrap.show { display:block; }
+.search-input {
+  width:100%; height:36px; border:1px solid var(--border); border-radius:18px;
+  padding:0 16px; font-size:var(--font-sm); background:var(--bg); outline:none;
+}
+.search-input:focus { border-color:var(--s1); }
+
+/* ============ 板块标签 ============ */
+.tabs-wrap {
+  display:flex; gap:6px; padding:8px 16px; background:var(--card);
+  border-bottom:1px solid var(--border); flex-shrink:0; overflow-x:auto;
+  scrollbar-width:none; -webkit-overflow-scrolling:touch;
+}
+.tabs-wrap::-webkit-scrollbar { display:none; }
+.tab {
+  flex-shrink:0; padding:7px 14px; border-radius:20px; border:none;
+  font-size:var(--font-sm); font-weight:500; cursor:pointer; white-space:nowrap;
+  background:var(--bg); color:var(--sub); transition:all .2s;
+}
+.tab.active { color:#FFF; font-weight:600; }
+.tab.s1.active { background:var(--s1); }
+.tab.s2.active { background:var(--s2); }
+.tab.s3.active { background:var(--s3); }
+.tab.s4.active { background:var(--s4); }
+.tab.s5.active { background:var(--s5); }
+.tab.s6.active { background:var(--s6); }
+
+/* ============ 主内容区 ============ */
+.main {
+  flex:1; overflow-y:auto; padding:10px 10px 100px;
+  -webkit-overflow-scrolling:touch;
+}
+
+/* 空状态 */
+.empty-state {
+  text-align:center; padding:48px 20px; color:var(--sub);
+}
+.empty-state .empty-icon { font-size:48px; margin-bottom:12px; }
+.empty-state .empty-text { font-size:var(--font-sm); line-height:1.6; }
+
+/* ============ 分组 ============ */
+.group {
+  margin-bottom:16px; background:var(--card); border-radius:var(--radius);
+  box-shadow:0 1px 6px rgba(0,0,0,.05); overflow:hidden;
+}
+.group-header {
+  display:flex; align-items:center; padding:14px 14px; gap:10px;
+  cursor:pointer; user-select:none; position:relative;
+  background:var(--card);
+}
+.group-header::after {
+  content:''; position:absolute; left:14px; right:14px; bottom:0;
+  height:1px; background:var(--border);
+  transition:opacity .2s;
+}
+.group-color-bar {
+  width:4px; height:22px; border-radius:2px; flex-shrink:0;
+}
+.group-color-bar.s1 { background:var(--s1); }
+.group-color-bar.s2 { background:var(--s2); }
+.group-color-bar.s3 { background:var(--s3); }
+.group-color-bar.s4 { background:var(--s4); }
+.group-color-bar.s5 { background:var(--s5); }
+.group-color-bar.s6 { background:var(--s6); }
+.group-name {
+  flex:1; font-size:var(--font-md); font-weight:600; overflow:hidden;
+  text-overflow:ellipsis; white-space:nowrap;
+}
+.group-count {
+  font-size:var(--font-xs); color:var(--sub); flex-shrink:0;
+  background:var(--bg); padding:2px 8px; border-radius:10px;
+}
+.group-arrow {
+  font-size:12px; color:var(--sub); transition:transform .2s; flex-shrink:0;
+}
+.group-arrow.open { transform:rotate(90deg); }
+.group-menu-btn {
+  width:28px; height:28px; border:none; border-radius:50%; background:transparent;
+  font-size:16px; color:var(--sub); cursor:pointer; flex-shrink:0;
+  display:flex; align-items:center; justify-content:center;
+}
+.group-menu-btn:active { background:var(--border); }
+
+/* ============ 卡片网格（单栏垂直排列） ============ */
+.card-grid {
+  display:none; flex-direction:column; gap:8px; padding:0 8px 12px;
+}
+.card-grid.open { display:flex; }
+.card-grid.open.as-list { display:block; }
+
+/* ============ 单张卡片 ============ */
+.card {
+  position:relative; background:var(--card); border-radius:10px;
+  padding:10px; cursor:pointer; transition:transform .12s;
+  word-break:break-word; min-height:44px;
+  display:flex; flex-direction:column;
+  border:1px solid var(--border);
+  box-shadow:0 1px 3px rgba(0,0,0,.06);
+}
+.card:active { transform:scale(.97); box-shadow:0 3px 12px rgba(0,0,0,.1); }
+.card-text { font-size:var(--font-xs); line-height:1.6; color:var(--text); }
+.card-text.clamp {
+  display:-webkit-box; -webkit-box-orient:vertical;
+  -webkit-line-clamp:5; overflow:hidden;
+}
+.card-text-multiline {
+  display:block; overflow:hidden; max-height:180px;
+  -webkit-mask-image:linear-gradient(to bottom, black 70%, transparent 100%);
+  mask-image:linear-gradient(to bottom, black 70%, transparent 100%);
+}
+.card-img {
+  width:100%; height:auto; border-radius:6px; display:block;
+}
+.card-more {
+  position:absolute; top:4px; right:4px; width:28px; height:28px;
+  border:none; border-radius:50%; background:rgba(240,240,240,.9);
+  font-size:15px; color:var(--text); cursor:pointer; display:flex;
+  align-items:center; justify-content:center; z-index:2;
+  box-shadow:0 1px 3px rgba(0,0,0,.1);
+}
+.card-more:active { background:var(--border); }
+
+/* 所有卡片统一撑满分组宽度 */
+.card { width:100%; }
+
+/* ============ 成语汇总列表 ============ */
+.idiom-list { padding:0; }
+.idiom-item {
+  display:flex; align-items:flex-start; padding:10px 14px;
+  border-bottom:1px solid var(--border); gap:8px; position:relative;
+}
+.idiom-item:last-child { border-bottom:none; }
+.idiom-word {
+  font-weight:700; color:var(--s1); font-size:var(--font-md);
+  white-space:nowrap; min-width:fit-content;
+}
+.idiom-def {
+  font-size:var(--font-sm); color:var(--text); line-height:1.6;
+  flex:1; word-break:break-all;
+}
+.idiom-item.highlighted { background:#FFF8E1; border-radius:4px; }
+.idiom-item.highlighted .idiom-word { color:#F0A030; }
+.hl-word { background:#FFE082; padding:1px 3px; border-radius:2px; font-weight:700; }
+.hl-input-wrap {
+  padding:8px 14px; border-bottom:1px solid var(--border); display:flex; gap:8px; align-items:center;
+  position:sticky; top:0; background:var(--card); z-index:3;
+}
+.hl-input {
+  flex:1; height:28px; border:1px solid var(--border); border-radius:14px;
+  padding:0 12px; font-size:var(--font-xs); background:var(--bg); outline:none;
+}
+.hl-input:focus { border-color:var(--s5); }
+.hl-hint { font-size:10px; color:var(--sub); white-space:nowrap; }
+.sync-bar {
+  text-align:center; padding:12px 14px; border-top:1px solid var(--border);
+}
+.sync-btn {
+  width:100%; padding:10px; border:none; border-radius:10px;
+  background:var(--s1l); color:var(--s1); font-size:var(--font-sm);
+  font-weight:600; cursor:pointer; transition:opacity .15s;
+}
+.sync-btn:active { opacity:.7; }
+
+/* ============ 弹出菜单 ============ */
+.popup-menu {
+  position:fixed; z-index:100; background:var(--card); border-radius:var(--radius);
+  box-shadow:0 4px 24px rgba(0,0,0,.15); min-width:140px; overflow:hidden;
+  animation:popIn .15s ease;
+}
+@keyframes popIn { from { opacity:0; transform:scale(.9); } to { opacity:1; transform:scale(1); } }
+.popup-item {
+  display:block; width:100%; padding:12px 16px; border:none; background:transparent;
+  font-size:var(--font-sm); text-align:left; cursor:pointer; color:var(--text);
+  border-bottom:1px solid var(--border);
+}
+.popup-item:last-child { border-bottom:none; }
+.popup-item:active { background:var(--bg); }
+.popup-item.danger { color:#E55; }
+
+/* ============ 底部浮动按钮 ============ */
+.fab {
+  position:fixed; bottom:32px; right:20px; width:52px; height:52px;
+  border-radius:50%; border:none; background:var(--text); color:#FFF;
+  font-size:26px; cursor:pointer; z-index:20;
+  box-shadow:0 4px 16px rgba(0,0,0,.25); transition:transform .2s;
+  display:flex; align-items:center; justify-content:center;
+}
+.fab:active { transform:scale(.9); }
+.fab-menu {
+  position:fixed; bottom:96px; right:20px; z-index:20;
+  display:flex; flex-direction:column; gap:10px; align-items:flex-end;
+}
+.fab-menu-item {
+  display:flex; align-items:center; gap:8px; padding:10px 16px;
+  border-radius:24px; border:none; background:var(--card); color:var(--text);
+  font-size:var(--font-sm); cursor:pointer; box-shadow:var(--shadow);
+  white-space:nowrap; transition:transform .15s;
+}
+.fab-menu-item:active { transform:scale(.95); }
+.fab-menu-item .fab-menu-icon { font-size:18px; }
+
+/* ============ 遮罩层 ============ */
+.overlay {
+  position:fixed; inset:0; background:rgba(0,0,0,.4); z-index:120;
+  display:flex; align-items:flex-end; justify-content:center;
+  animation:fadeIn .2s;
+}
+.overlay.centered { align-items:center; }
+@keyframes fadeIn { from { opacity:0; } to { opacity:1; } }
+
+/* ============ 底部面板 Sheet ============ */
+.sheet {
+  background:var(--card); border-radius:20px 20px 0 0; width:100%;
+  max-height:92vh; overflow-y:auto; padding:20px 16px 24px;
+  animation:slideUp .25s ease;
+}
+.sheet.fullscreen {
+  border-radius:0; height:100vh; max-height:100vh;
+}
+.sheet-title {
+  font-size:var(--font-md); font-weight:700; margin-bottom:12px;
+  text-align:center;
+}
+.sheet-field { margin-bottom:10px; }
+.sheet-label {
+  font-size:var(--font-xs); color:var(--sub); margin-bottom:3px;
+  font-weight:500; text-transform:uppercase; letter-spacing:.5px;
+}
+.sheet-input, .sheet-textarea, .sheet-select {
+  width:100%; padding:10px 12px; border:1px solid var(--border);
+  border-radius:8px; font-size:var(--font-sm); outline:none;
+  background:var(--bg); font-family:inherit;
+}
+.sheet-input:focus, .sheet-textarea:focus { border-color:var(--s1); }
+.sheet-textarea { min-height:260px; resize:none; line-height:1.7; }
+.sheet-textarea.tall { min-height:400px; }
+.sheet-select { appearance:none; cursor:pointer; }
+.sheet-file-area {
+  display:flex; align-items:center; justify-content:center;
+  padding:24px; border:2px dashed var(--border); border-radius:10px;
+  cursor:pointer; transition:border-color .2s; flex-direction:column; gap:6px;
+}
+.sheet-file-area:active { border-color:var(--s1); }
+.sheet-file-area .file-icon { font-size:32px; }
+.sheet-file-area .file-hint { font-size:var(--font-xs); color:var(--sub); }
+.sheet-file-area input[type=file] { display:none; }
+.sheet-preview-img {
+  max-width:100%; max-height:200px; border-radius:8px; margin-top:8px;
+}
+.sheet-actions { display:flex; gap:10px; margin-top:20px; }
+.sheet-btn {
+  flex:1; padding:12px; border:none; border-radius:10px;
+  font-size:var(--font-md); font-weight:600; cursor:pointer; transition:opacity .15s;
+}
+.sheet-btn:active { opacity:.7; }
+.sheet-btn.primary { background:var(--text); color:#FFF; }
+.sheet-btn.secondary { background:var(--bg); color:var(--text); }
+.sheet-btn.danger { background:#FEE; color:#E55; }
+
+/* ============ 确认对话框 ============ */
+.confirm-box {
+  background:var(--card); border-radius:16px; padding:24px; width:90%; max-width:320px;
+  text-align:center; animation:popIn .2s;
+}
+.confirm-title { font-size:var(--font-md); font-weight:600; margin-bottom:8px; }
+.confirm-text { font-size:var(--font-sm); color:var(--sub); margin-bottom:20px; }
+
+/* ============ 设置面板 ============ */
+.settings-section { margin-bottom:20px; }
+.settings-section h3 { font-size:var(--font-sm); font-weight:600; margin-bottom:10px; color:var(--sub); }
+.settings-row {
+  display:flex; align-items:center; justify-content:space-between;
+  padding:12px 0; border-bottom:1px solid var(--border);
+}
+.settings-row span { font-size:var(--font-sm); }
+.settings-btn {
+  padding:8px 16px; border:none; border-radius:8px; font-size:var(--font-sm);
+  cursor:pointer; font-weight:500;
+}
+.settings-btn.export-btn { background:var(--s1l); color:var(--s1); }
+.settings-btn.import-btn { background:var(--s2l); color:var(--s2); }
+.settings-btn.reset-btn { background:#FEE; color:#E55; }
+
+/* ============ Toast ============ */
+.toast {
+  position:fixed; top:60px; left:50%; transform:translateX(-50%);
+  background:var(--text); color:#FFF; padding:10px 20px; border-radius:20px;
+  font-size:var(--font-sm); z-index:200; animation:toastIn .3s;
+  pointer-events:none; white-space:nowrap;
+}
+@keyframes toastIn { from { opacity:0; transform:translateX(-50%) translateY(-10px); } to { opacity:1; transform:translateX(-50%) translateY(0); } }
+
+/* ============ 安装提示 ============ */
+.install-banner {
+  position:fixed; top:0; left:0; right:0; z-index:300;
+  background:var(--text); color:#FFF; padding:10px 14px;
+  display:flex; align-items:center; gap:10px;
+  font-size:var(--font-sm); animation:slideDown .3s;
+  box-shadow:0 2px 12px rgba(0,0,0,.15);
+}
+@keyframes slideDown { from { transform:translateY(-100%); } to { transform:translateY(0); } }
+.install-banner .install-text { flex:1; line-height:1.4; }
+.install-banner .install-btn {
+  flex-shrink:0; padding:7px 16px; border:none; border-radius:18px;
+  background:#FFF; color:var(--text); font-size:var(--font-sm);
+  font-weight:600; cursor:pointer;
+}
+.install-banner .install-close {
+  flex-shrink:0; width:24px; height:24px; border:none;
+  border-radius:50%; background:rgba(255,255,255,.2);
+  color:#FFF; font-size:12px; cursor:pointer;
+  display:flex; align-items:center; justify-content:center;
+}
+</style>
+</head>
+<body>
+
+<!-- 安装提示横幅 -->
+<div id="installBanner" class="install-banner" style="display:none;">
+  <span class="install-text">📲 添加到桌面，离线也能用</span>
+  <button class="install-btn" id="installBtn">立即安装</button>
+  <button class="install-close" id="installDismiss">✕</button>
+</div>
+
+<!-- ============ 顶部栏 ============ -->
+<header class="topbar">
+  <h1>🧠 公考速记</h1>
+  <button class="topbar-btn" id="searchToggle" title="搜索">🔍</button>
+  <button class="topbar-btn" id="settingsToggle" title="设置">⚙</button>
+</header>
+
+<!-- 搜索栏 -->
+<div class="search-wrap" id="searchWrap">
+  <input class="search-input" id="searchInput" type="search" placeholder="搜索组名...">
+</div>
+
+<!-- 板块标签 -->
+<nav class="tabs-wrap" id="tabsWrap"></nav>
+
+<!-- 主内容 -->
+<main class="main" id="mainContent"></main>
+
+<!-- 浮动按钮 -->
+<div id="fabMenu" style="display:none;">
+  <div class="fab-menu" id="fabMenuItems">
+    <button class="fab-menu-item" data-action="newCard">
+      <span class="fab-menu-icon">📝</span> 新建卡片
+    </button>
+    <button class="fab-menu-item" data-action="newGroup">
+      <span class="fab-menu-icon">📁</span> 新建分组
+    </button>
+  </div>
+</div>
+<button class="fab" id="fabBtn">+</button>
+
+<!-- 遮罩 + 弹窗容器 -->
+<div id="overlay" style="display:none;" class="overlay"><div id="overlayContent"></div></div>
+
+<!-- 弹出菜单 -->
+<div id="popupMenu" class="popup-menu" style="display:none;"></div>
+
+<!-- Toast容器 -->
+<div id="toast" style="display:none;" class="toast"></div>
+
+<!-- 隐藏的文件输入 -->
+<input type="file" id="hiddenFileInput" style="display:none;" accept=".json">
+
+<script>
+/* =================================================================
+   公考速记 PWA — 完整应用逻辑
+   ================================================================= */
+(function(){
+
+// ==================== 常量 ====================
+const SECTIONS = ['言语理解','判断推理','图形推理','资料分析','数量关系','申论'];
+const COLORS = {
+  '言语理解': { main:'#81C8B5', light:'#E8F5F0', cls:'s1' },
+  '判断推理': { main:'#A8B8E0', light:'#EDF0FA', cls:'s2' },
+  '图形推理': { main:'#C4A8D6', light:'#F3EDF8', cls:'s3' },
+  '资料分析': { main:'#F0B896', light:'#FDF0E9', cls:'s4' },
+  '数量关系': { main:'#F5D782', light:'#FFFBE8', cls:'s5' },
+  '申论':     { main:'#E8988E', light:'#FCEAE8', cls:'s6' },
+};
+const IMG_MAX_KB = 2000;
+const DB_NAME = 'gongkao_suji';
+const DB_VERSION = 1;
+
+// ==================== DOM 引用 ====================
+const $ = (s) => document.querySelector(s);
+const $$ = (s) => document.querySelectorAll(s);
+
+const dom = {
+  searchToggle: $('#searchToggle'),
+  searchWrap: $('#searchWrap'),
+  searchInput: $('#searchInput'),
+  tabsWrap: $('#tabsWrap'),
+  mainContent: $('#mainContent'),
+  fabBtn: $('#fabBtn'),
+  fabMenu: $('#fabMenu'),
+  overlay: $('#overlay'),
+  overlayContent: $('#overlayContent'),
+  popupMenu: $('#popupMenu'),
+  toast: $('#toast'),
+  hiddenFileInput: $('#hiddenFileInput'),
+  settingsToggle: $('#settingsToggle'),
+};
+
+// ==================== 状态 ====================
+let db = null;
+let state = { customHlWords: {},
+  activeSection: '言语理解',
+  searchQuery: '',
+  expandedGroups: new Set(), // 记住展开状态
+};
+
+// ==================== IndexedDB ====================
+function openDB() {
+  return new Promise((resolve, reject) => {
+    const req = indexedDB.open(DB_NAME, DB_VERSION);
+    req.onupgradeneeded = (e) => {
+      const d = e.target.result;
+      if (!d.objectStoreNames.contains('sections')) {
+        d.createObjectStore('sections', { keyPath: 'name' });
+      }
+    };
+    req.onsuccess = (e) => { db = e.target.result; resolve(db); };
+    req.onerror = () => reject(req.error);
+  });
+}
+
+function dbGet(name) {
+  return new Promise((resolve, reject) => {
+    const tx = db.transaction('sections', 'readonly');
+    const req = tx.objectStore('sections').get(name);
+    req.onsuccess = () => resolve(req.result ? req.result.data : { groups: [] });
+    req.onerror = () => reject(req.error);
+  });
+}
+
+function dbPut(name, data) {
+  return new Promise((resolve, reject) => {
+    const tx = db.transaction('sections', 'readwrite');
+    tx.objectStore('sections').put({ name, data });
+    tx.oncomplete = () => resolve();
+    tx.onerror = () => reject(tx.error);
+  });
+}
+
+function dbGetAll() {
+  return new Promise((resolve, reject) => {
+    const tx = db.transaction('sections', 'readonly');
+    const req = tx.objectStore('sections').getAll();
+    req.onsuccess = () => resolve(req.result);
+    req.onerror = () => reject(req.error);
+  });
+}
+
+// ==================== 工具函数 ====================
+function uuid() {
+  return Date.now().toString(36) + Math.random().toString(36).slice(2, 8);
+}
+
+function fmtDate(ts) {
+  const d = new Date(ts);
+  const now = new Date();
+  const diff = now - d;
+  if (diff < 60000) return '刚刚';
+  if (diff < 3600000) return Math.floor(diff / 60000) + '分钟前';
+  if (diff < 86400000) return Math.floor(diff / 3600000) + '小时前';
+  return d.getMonth() + 1 + '/' + d.getDate();
+}
+
+function escapeHTML(s) {
+  const d = document.createElement('div');
+  d.textContent = s;
+  return d.innerHTML;
+}
+
+function renderCardText(text) {
+  const escaped = escapeHTML(text);
+  // 有换行则显示换行，无换行则紧凑
+  if (text.includes('\n') || text.includes('\r')) {
+    return `<div class="card-text card-text-multiline">${escaped.replace(/\n/g, '<br>')}</div>`;
+  }
+  return `<div class="card-text clamp">${escaped}</div>`;
+}
+
+function toast(msg, duration = 1800) {
+  dom.toast.textContent = msg;
+  dom.toast.style.display = 'block';
+  clearTimeout(toast._tid);
+  toast._tid = setTimeout(() => { dom.toast.style.display = 'none'; }, duration);
+}
+
+// ==================== 图片压缩 ====================
+function compressImage(file) {
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    reader.onload = (e) => {
+      const img = new Image();
+      img.onload = () => {
+        const { naturalWidth: w, naturalHeight: h } = img;
+        // 限制最大尺寸 1600px
+        const MAX = 1600;
+        let dw = w, dh = h;
+        if (Math.max(w, h) > MAX) {
+          if (w > h) { dw = MAX; dh = Math.round(h * MAX / w); }
+          else { dh = MAX; dw = Math.round(w * MAX / h); }
+        }
+        const canvas = document.createElement('canvas');
+        canvas.width = dw;
+        canvas.height = dh;
+        const ctx = canvas.getContext('2d');
+        ctx.drawImage(img, 0, 0, dw, dh);
+        // 尝试不同质量级别
+        function tryQuality(q) {
+          return new Promise((rs) => {
+            canvas.toBlob((blob) => {
+              if (!blob) { rs(null); return; }
+              const reader2 = new FileReader();
+              reader2.onloadend = () => rs({
+                dataUrl: reader2.result,
+                size: blob.size,
+                width: dw,
+                height: dh,
+              });
+              reader2.readAsDataURL(blob);
+            }, 'image/jpeg', q);
+          });
+        }
+        tryQuality(0.9).then(async (r) => {
+          if (!r) { reject(new Error('压缩失败')); return; }
+          if (r.size > IMG_MAX_KB * 1024) {
+            r = await tryQuality(0.75);
+            if (!r) { reject(new Error('压缩失败')); return; }
+          }
+          if (r.size > IMG_MAX_KB * 1024) {
+            r = await tryQuality(0.6);
+            if (!r) { reject(new Error('压缩失败')); return; }
+          }
+          resolve(r);
+        });
+      };
+      img.onerror = () => reject(new Error('图片加载失败'));
+      img.src = e.target.result;
+    };
+    reader.onerror = () => reject(new Error('文件读取失败'));
+    reader.readAsDataURL(file);
+  });
+}
+
+// ==================== 弹出菜单 ====================
+function showPopup(x, y, items) {
+  dom.popupMenu.innerHTML = items.map(i =>
+    `<button class="popup-item${i.danger ? ' danger' : ''}" data-action="${i.action}">${i.label}</button>`
+  ).join('');
+  dom.popupMenu.style.display = 'block';
+  dom.popupMenu.style.left = Math.min(x, window.innerWidth - 150) + 'px';
+  dom.popupMenu.style.top = Math.min(y, window.innerHeight - items.length * 44 - 10) + 'px';
+  dom.popupMenu._items = items;
+}
+
+function hidePopup() {
+  dom.popupMenu.style.display = 'none';
+  dom.popupMenu._items = null;
+}
+
+// ==================== 遮罩/弹窗 ====================
+function showOverlay(html, mode = 'sheet') {
+  dom.overlayContent.innerHTML = `<div class="${mode}">${html}</div>`;
+  dom.overlay.style.display = 'flex';
+  dom.overlay.classList.toggle('centered', mode === 'confirm-box');
+}
+
+function hideOverlay() {
+  dom.overlay.style.display = 'none';
+  dom.overlay.classList.remove('centered');
+  dom.overlayContent.innerHTML = '';
+}
+
+// ==================== FAB 菜单 ====================
+let fabOpen = false;
+dom.fabBtn.addEventListener('click', () => {
+  fabOpen = !fabOpen;
+  dom.fabMenu.style.display = fabOpen ? 'block' : 'none';
+  dom.fabBtn.textContent = fabOpen ? '✕' : '+';
+  dom.fabBtn.style.background = fabOpen ? '#E55' : 'var(--text)';
+});
+
+dom.fabMenu.addEventListener('click', (e) => {
+  const btn = e.target.closest('.fab-menu-item');
+  if (!btn) return;
+  const action = btn.dataset.action;
+  closeFab();
+  if (action === 'newCard') showAddCardSheet();
+  if (action === 'newGroup') showAddGroupSheet();
+});
+
+function closeFab() {
+  fabOpen = false;
+  dom.fabMenu.style.display = 'none';
+  dom.fabBtn.textContent = '+';
+  dom.fabBtn.style.background = 'var(--text)';
+}
+
+// ==================== 数据加载/保存 ====================
+async function loadSection(name) {
+  return dbGet(name);
+}
+
+async function saveSection(name, data) {
+  return dbPut(name, data);
+}
+
+// ==================== 渲染 ====================
+function renderTabs() {
+  const cls = COLORS[state.activeSection].cls;
+  dom.tabsWrap.innerHTML = SECTIONS.map(s => {
+    const c = COLORS[s].cls;
+    return `<button class="tab ${c} ${s === state.activeSection ? 'active' : ''}" data-section="${s}">${s}</button>`;
+  }).join('');
+  // 滚动当前标签到可见位置
+  requestAnimationFrame(() => {
+    const active = dom.tabsWrap.querySelector('.tab.active');
+    if (active) active.scrollIntoView({ behavior:'smooth', block:'nearest', inline:'center' });
+  });
+}
+
+async function renderGroups() {
+  const { groups } = await loadSection(state.activeSection);
+  const cls = COLORS[state.activeSection].cls;
+  const query = state.searchQuery.trim().toLowerCase();
+
+  // 搜索：匹配组名或卡片文本内容
+  let groupViews;
+  if (query) {
+    groupViews = groups
+      .map(g => {
+        const nameMatch = g.name.toLowerCase().includes(query);
+        const matchedCards = g.cards.filter(c => c.type === "text" && c.content.toLowerCase().includes(query));
+        const anyCardMatch = matchedCards.length > 0;
+        if (!nameMatch && !anyCardMatch) return null;
+        const displayCards = nameMatch ? g.cards : matchedCards;
+        return { ...g, displayCards };
+      })
+      .filter(Boolean);
+  } else {
+    groupViews = groups.map(g => ({ ...g, displayCards: g.cards }));
+  }
+
+  if (groupViews.length === 0) {
+    dom.mainContent.innerHTML = `
+      <div class="empty-state">
+        <div class="empty-icon">📭</div>
+        <div class="empty-text">${query ? '没有匹配的内容' : '还没有分组<br>点击下方 + 创建第一个分组'}</div>
+      </div>`;
+    return;
+  }
+
+  dom.mainContent.innerHTML = groupViews.map(g => {
+    // 搜索时自动展开所有匹配分组
+    if (query) state.expandedGroups.add(g.id);
+    const isOpen = state.expandedGroups.has(g.id);
+    const isIdiom = g.name === '成语辨析' || g.name === '实词辨析';
+    const bodyHTML = isIdiom
+      ? `<div class="card-grid${isOpen ? ' open as-list' : ''}" data-group-id="${g.id}">${renderIdiomList(g.displayCards, g.id)}</div>`
+      : `<div class="card-grid${isOpen ? ' open' : ''}" data-group-id="${g.id}">${renderCards({ ...g, cards: g.displayCards }, cls)}</div>`;
+    return `
+    <div class="group" data-group-id="${g.id}">
+      <div class="group-header" data-group-id="${g.id}">
+        <div class="group-color-bar ${cls}"></div>
+        <span class="group-name">${escapeHTML(g.name)}</span>
+        <span class="group-count">${g.cards.length}条</span>
+        <span class="group-arrow${isOpen ? ' open' : ''}">▶</span>
+        ${isIdiom ? '' : `<button class="group-menu-btn" data-group-id="${g.id}" data-action="groupMenu">⋯</button>`}
+      </div>
+      ${bodyHTML}
+    </div>`;
+  }).join('');
+
+  // 绑定事件
+  bindGroupEvents();
+}
+
+function renderCards(group, cls) {
+  if (group.cards.length === 0) {
+    return `<div style="text-align:center;padding:20px 12px;color:var(--sub);font-size:var(--font-xs);">空分组，点击 + 添加卡片</div>`;
+  }
+  return group.cards.map((card, idx) => {
+    let inner = '';
+    if (card.type === 'image') {
+      inner = `<img class="card-img" src="${card.content}" alt="" loading="lazy">`;
+    } else {
+      inner = renderCardText(card.content || '');
+    }
+    return `
+    <div class="card" data-card-id="${card.id}" data-group-id="${group.id}">
+      <button class="card-more" data-card-id="${card.id}" data-group-id="${group.id}" data-action="cardMenu">⋯</button>
+      ${inner}
+      <div style="margin-top:6px;font-size:10px;color:var(--sub);">${fmtDate(card.createdAt)}</div>
+    </div>`;
+  }).join('');
+}
+
+function renderIdiomList(cards, gid) {
+  // 去重：同词保留释义最长的那条
+  var wordMap = {};
+  for (var i2 = 0; i2 < cards.length; i2++) {
+    var w = (cards[i2].content || '').split('\t')[0].trim();
+    if (!w) continue;
+    if (!wordMap[w] || (cards[i2].content || '').length > (wordMap[w].content || '').length) {
+      wordMap[w] = cards[i2];
+    }
+  }
+  cards = Object.values(wordMap);
+  if (!cards.length) {
+    return `<div style="text-align:center;padding:14px;color:var(--sub);font-size:var(--font-xs);">暂无成语，点击底部按钮同步</div>`;
+  }
+  const items = cards.map((c, i) => {
+    const parts = (c.content || '').split('\t');
+    const word = escapeHTML(parts[0] || '');
+    var def = escapeHTML(parts[1] || '');
+    // 自定义高亮词
+    var hlWords = (state.customHlWords[gid] || '').trim();
+    if (hlWords) {
+      hlWords.split(/\s+/).forEach(function(w) {
+        if (w.length < 2) return;
+        var esc = w.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+        def = def.replace(new RegExp(esc, 'g'), '<span class="hl-word">' + w + '</span>');
+      });
+    }
+    const hl = c.highlighted ? ' highlighted' : '';
+    return `<div class="idiom-item${hl}" data-card-id="${c.id}" data-gid="${gid}" onclick="window._toggleIdiomHighlight('${c.id}','${gid}')"><span class="idiom-word">${word}</span><span class="idiom-def">${def}</span></div>`;
+  }).join('');
+  return `
+    <div class="hl-input-wrap"><input class="hl-input" id="hl-input-${gid}" placeholder="输入高亮词，空格分隔" value="${escapeHTML(state.customHlWords[gid] || '')}" onchange="window._setCustomHl('${gid}', this.value)" onkeydown="if(event.key==='Enter'){this.blur();window._setCustomHl('${gid}', this.value)}"><span class="hl-hint">回车确认 ｜ 点词条标记</span></div>
+    <div class="idiom-list">${items}</div>
+    <div class="sync-bar" style="display:flex;gap:8px;">
+      <button class="sync-btn" onclick="loadIdiomsFromAPI()" style="flex:1;background:#4A90D9;color:#FFF;">🔄 在线同步</button>
+      <button class="sync-btn" onclick="window._importFile()" style="flex:1;background:var(--s4l);color:#C97A5A;">📄 导入TXT</button>
+    </div>`;
+}
+
+async function _toggleIdiomHighlight(cid, gid) {
+  var data = await loadSection(state.activeSection);
+  var group = data.groups.find(function(g) { return g.id === gid; });
+  if (!group) return;
+  var card = group.cards.find(function(c) { return c.id === cid; });
+  if (!card) return;
+  card.highlighted = !card.highlighted;
+  await saveSection(state.activeSection, { groups: data.groups });
+  renderGroups();
+}
+
+async function _setCustomHl(gid, val) {
+  state.customHlWords[gid] = val.trim();
+  await renderGroups();
+  var firstHl = document.querySelector('.idiom-list .hl-word');
+  if (firstHl) { firstHl.scrollIntoView({ behavior:'smooth', block:'center' }); }
+}
+
+// ==================== 事件绑定 ====================
+function bindGroupEvents() {
+  // 折叠/展开分组
+  dom.mainContent.querySelectorAll('.group-header').forEach(h => {
+    h.addEventListener('click', (e) => {
+      if (e.target.closest('.group-menu-btn')) return; // 不拦截菜单按钮
+      const gid = h.dataset.groupId;
+      if (state.expandedGroups.has(gid)) {
+        state.expandedGroups.delete(gid);
+      } else {
+        state.expandedGroups.add(gid);
+      }
+      renderGroups();
+    });
+  });
+
+  // 分组菜单按钮
+  dom.mainContent.querySelectorAll('.group-menu-btn').forEach(btn => {
+    btn.addEventListener('click', (e) => {
+      e.stopPropagation();
+      const gid = btn.dataset.groupId;
+      const rect = btn.getBoundingClientRect();
+      showPopup(rect.left - 100, rect.bottom + 4, [
+        { action:'renameGroup', label:'✏️ 重命名', data:gid },
+        { action:'deleteGroup', label:'🗑️ 删除分组', data:gid, danger:true },
+      ]);
+    });
+  });
+
+  // 卡片更多按钮
+  dom.mainContent.querySelectorAll('.card-more').forEach(btn => {
+    btn.addEventListener('click', (e) => {
+      e.stopPropagation();
+      const cid = btn.dataset.cardId;
+      const gid = btn.dataset.groupId;
+      const rect = btn.getBoundingClientRect();
+      showPopup(rect.left - 120, rect.bottom + 2, [
+        { action:'viewCard', label:'👁️ 查看详情', data:{gid, cid} },
+        { action:'editCard', label:'✏️ 编辑', data:{gid, cid} },
+        { action:'moveUp', label:'⬆️ 上移', data:{gid, cid} },
+        { action:'moveDown', label:'⬇️ 下移', data:{gid, cid} },
+        { action:'deleteCard', label:'🗑️ 删除', data:{gid, cid}, danger:true },
+      ]);
+    });
+  });
+
+  // 卡片点击查看
+  dom.mainContent.querySelectorAll('.card').forEach(card => {
+    card.addEventListener('click', (e) => {
+      if (e.target.closest('.card-more')) return;
+      const cid = card.dataset.cardId;
+      const gid = card.dataset.groupId;
+      showCardDetail(gid, cid);
+    });
+  });
+}
+
+// ==================== 弹出菜单点击处理 ====================
+dom.popupMenu.addEventListener('click', async (e) => {
+  const btn = e.target.closest('.popup-item');
+  if (!btn) return;
+  const action = btn.dataset.action;
+  const items = dom.popupMenu._items || [];
+  const item = items.find(i => i.action === action);
+
+  hidePopup();
+
+  if (!item) return;
+
+  if (action === 'viewCard') {
+    showCardDetail(item.data.gid, item.data.cid);
+  } else if (action === 'editCard') {
+    showEditCardSheet(item.data.gid, item.data.cid);
+  } else if (action === 'moveUp') {
+    await moveCard(item.data.gid, item.data.cid, 'up');
+  } else if (action === 'moveDown') {
+    await moveCard(item.data.gid, item.data.cid, 'down');
+  } else if (action === 'deleteCard') {
+    await deleteCard(item.data.gid, item.data.cid);
+  } else if (action === 'renameGroup') {
+    showRenameGroupSheet(item.data);
+  } else if (action === 'deleteGroup') {
+    await deleteGroup(item.data);
+  }
+});
+
+// ==================== 卡片详情 ====================
+async function showCardDetail(gid, cid) {
+  const { groups } = await loadSection(state.activeSection);
+  const group = groups.find(g => g.id === gid);
+  if (!group) return;
+  const card = group.cards.find(c => c.id === cid);
+  if (!card) return;
+
+  if (card.type === 'image') {
+    showOverlay(`
+      <div class="sheet-title">📷 图片卡片</div>
+      <div style="text-align:center;">
+        <img src="${card.content}" style="max-width:100%;max-height:60vh;border-radius:10px;" alt="">
+      </div>
+      <div style="text-align:center;margin-top:12px;color:var(--sub);font-size:var(--font-xs);">
+        ${fmtDate(card.createdAt)} · 来自「${escapeHTML(group.name)}」
+      </div>
+      <div class="sheet-actions">
+        <button class="sheet-btn secondary" onclick="window._hideOverlay()">关闭</button>
+      </div>
+    `);
+  } else {
+    showOverlay(`
+      <div class="sheet-title">📝 卡片详情</div>
+      <div style="background:var(--bg);padding:16px;border-radius:10px;font-size:var(--font-sm);line-height:1.8;max-height:50vh;overflow-y:auto;">
+        ${escapeHTML(card.content).replace(/\n/g, '<br><br>')}
+      </div>
+      <div style="text-align:center;margin-top:12px;color:var(--sub);font-size:var(--font-xs);">
+        ${fmtDate(card.createdAt)} · 来自「${escapeHTML(group.name)}」
+      </div>
+      <div class="sheet-actions">
+        <button class="sheet-btn secondary" onclick="window._hideOverlay()">关闭</button>
+        <button class="sheet-btn primary" id="detailEditBtn">✏️ 编辑</button>
+      </div>
+    `);
+    $('#detailEditBtn')?.addEventListener('click', () => {
+      hideOverlay();
+      showEditCardSheet(gid, cid);
+    });
+  }
+}
+
+// ==================== 添加/编辑卡片 ====================
+async function showAddCardSheet(presetGroupId) {
+  const { groups } = await loadSection(state.activeSection);
+  if (groups.length === 0) {
+    toast('请先创建分组');
+    showAddGroupSheet();
+    return;
+  }
+  showOverlay(`
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px;gap:10px;">
+      <button class="sheet-btn secondary" style="width:auto;flex:0;" onclick="window._hideOverlay()">← 取消</button>
+      <span style="font-size:var(--font-sm);font-weight:600;">📝 新建卡片</span>
+      <button class="sheet-btn primary" style="width:auto;flex:0;" id="saveCardBtn">保存</button>
+    </div>
+    <div class="sheet-field">
+      <div class="sheet-label">类型 · 所属分组</div>
+      <div style="display:flex;gap:8px;">
+        <select class="sheet-select" id="cardType" style="flex:1;">
+          <option value="text">文本</option>
+          <option value="image">图片</option>
+        </select>
+        <select class="sheet-select" id="cardGroup" style="flex:2;">
+          ${groups.map(g => `<option value="${g.id}" ${g.id === presetGroupId ? 'selected' : ''}>${escapeHTML(g.name)}</option>`).join('')}
+        </select>
+      </div>
+    </div>
+    <div class="sheet-field" id="textField" style="margin:0;">
+      <textarea class="sheet-textarea tall" id="cardText" placeholder="输入知识点内容..."></textarea>
+    </div>
+    <div class="sheet-field" id="imageField" style="display:none;">
+      <div class="sheet-file-area" id="fileArea">
+        <span class="file-icon">🖼️</span>
+        <span class="file-hint">点击选择图片（自动压缩至${IMG_MAX_KB / 1000}MB以内）</span>
+      </div>
+      <img class="sheet-preview-img" id="imagePreview" style="display:none;" alt="">
+    </div>
+  `);
+
+  let pendingImage = null;
+
+  // 类型切换
+  $('#cardType').addEventListener('change', (e) => {
+    const isImg = e.target.value === 'image';
+    $('#textField').style.display = isImg ? 'none' : 'block';
+    $('#imageField').style.display = isImg ? 'block' : 'none';
+  });
+
+  // 文件选择
+  $('#fileArea').addEventListener('click', () => {
+    const input = document.createElement('input');
+    input.type = 'file';
+    input.accept = 'image/*';
+    input.onchange = async (ev) => {
+      const file = ev.target.files[0];
+      if (!file) return;
+      toast('正在压缩图片...');
+      try {
+        pendingImage = await compressImage(file);
+        const preview = $('#imagePreview');
+        preview.src = pendingImage.dataUrl;
+        preview.style.display = 'block';
+        $('#fileArea').querySelector('.file-icon').textContent = '✅';
+        $('#fileArea').querySelector('.file-hint').textContent =
+          `已选择 (${(pendingImage.size / 1024).toFixed(0)}KB, ${pendingImage.width}×${pendingImage.height})`;
+      } catch (err) {
+        toast('图片处理失败，请重试');
+      }
+    };
+    input.click();
+  });
+
+  // 保存
+  $('#saveCardBtn').addEventListener('click', async () => {
+    const type = $('#cardType').value;
+    const groupId = $('#cardGroup').value;
+    if (type === 'text') {
+      const text = $('#cardText').value.trim();
+      if (!text) { toast('请输入内容'); return; }
+      await addCard(groupId, { id: uuid(), type:'text', content:text });
+    } else {
+      if (!pendingImage) { toast('请选择图片'); return; }
+      await addCard(groupId, {
+        type:'image',
+        content: pendingImage.dataUrl,
+        imgW: pendingImage.width,
+        imgH: pendingImage.height,
+      });
+    }
+    hideOverlay();
+    toast('卡片已添加');
+  });
+}
+
+async function showEditCardSheet(gid, cid) {
+  const { groups } = await loadSection(state.activeSection);
+  const group = groups.find(g => g.id === gid);
+  if (!group) return;
+  const card = group.cards.find(c => c.id === cid);
+  if (!card) return;
+
+  showOverlay(`
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px;gap:10px;">
+      <button class="sheet-btn secondary" style="width:auto;flex:0;" onclick="window._hideOverlay()">← 取消</button>
+      <span style="font-size:var(--font-sm);font-weight:600;">✏️ 编辑卡片</span>
+      <button class="sheet-btn primary" style="width:auto;flex:0;" id="saveEditBtn">保存</button>
+    </div>
+    <div class="sheet-field" id="editTextField" style="display:${card.type === 'text' ? 'block' : 'none'};margin:0;">
+      <textarea class="sheet-textarea tall" id="editCardText" placeholder="输入内容...">${escapeHTML(card.content)}</textarea>
+    </div>
+    <div class="sheet-field" id="editImageField" style="display:${card.type === 'image' ? 'block' : 'none'};">
+      <div class="sheet-label">当前图片</div>
+      <img src="${card.content}" style="max-width:100%;max-height:200px;border-radius:8px;" alt="">
+    </div>
+  `);
+
+  $('#saveEditBtn').addEventListener('click', async () => {
+    if (card.type === 'text') {
+      const text = $('#editCardText').value.trim();
+      if (!text) { toast('请输入内容'); return; }
+      await updateCard(gid, cid, { content: text });
+    }
+    hideOverlay();
+    toast('卡片已更新');
+  });
+}
+
+// ==================== 分组操作 ====================
+async function showAddGroupSheet() {
+  showOverlay(`
+    <div class="sheet-title">📁 新建分组</div>
+    <div class="sheet-field">
+      <div class="sheet-label">分组名称</div>
+      <input class="sheet-input" id="groupNameInput" placeholder="例如：逻辑填空" maxlength="30">
+    </div>
+    <div class="sheet-actions">
+      <button class="sheet-btn secondary" onclick="window._hideOverlay()">取消</button>
+      <button class="sheet-btn primary" id="createGroupBtn">创建</button>
+    </div>
+  `);
+
+  const input = $('#groupNameInput');
+  input.focus();
+  $('#createGroupBtn').addEventListener('click', async () => {
+    const name = input.value.trim();
+    if (!name) { toast('请输入分组名称'); return; }
+    await addGroup(name);
+    hideOverlay();
+    toast('分组已创建');
+  });
+}
+
+function showRenameGroupSheet(gid) {
+  showOverlay(`
+    <div class="sheet-title">✏️ 重命名分组</div>
+    <div class="sheet-field">
+      <div class="sheet-label">新名称</div>
+      <input class="sheet-input" id="renameInput" maxlength="30">
+    </div>
+    <div class="sheet-actions">
+      <button class="sheet-btn secondary" onclick="window._hideOverlay()">取消</button>
+      <button class="sheet-btn primary" id="renameBtn">保存</button>
+    </div>
+  `);
+
+  $('#renameBtn').addEventListener('click', async () => {
+    const name = $('#renameInput').value.trim();
+    if (!name) { toast('请输入名称'); return; }
+    const { groups } = await loadSection(state.activeSection);
+    const idx = groups.findIndex(g => g.id === gid);
+    if (idx === -1) return;
+    groups[idx].name = name;
+    await saveSection(state.activeSection, { groups });
+    hideOverlay();
+    toast('已重命名');
+    renderGroups();
+  });
+}
+
+async function deleteGroup(gid) {
+  const { groups } = await loadSection(state.activeSection);
+  const group = groups.find(g => g.id === gid);
+  if (!group) return;
+  hidePopup();
+  showOverlay(`
+    <div class="confirm-box">
+      <div class="confirm-title">确认删除</div>
+      <div class="confirm-text">删除分组「${escapeHTML(group.name)}」及其所有卡片？此操作不可恢复。</div>
+      <div class="sheet-actions">
+        <button class="sheet-btn secondary" onclick="window._hideOverlay()">取消</button>
+        <button class="sheet-btn danger" id="confirmDeleteBtn">删除</button>
+      </div>
+    </div>
+  `, 'confirm-box');
+
+  $('#confirmDeleteBtn').addEventListener('click', async () => {
+    const newGroups = groups.filter(g => g.id !== gid);
+    await saveSection(state.activeSection, { groups: newGroups });
+    state.expandedGroups.delete(gid);
+    hideOverlay();
+    toast('分组已删除');
+    renderGroups();
+  });
+}
+
+// ==================== 卡片 CRUD ====================
+async function addGroup(name) {
+  const { groups } = await loadSection(state.activeSection);
+  groups.push({
+    id: uuid(),
+    name,
+    cards: [],
+    createdAt: Date.now(),
+  });
+  await saveSection(state.activeSection, { groups });
+  state.expandedGroups.add(groups[groups.length - 1].id);
+  renderGroups();
+}
+
+async function addCard(gid, cardData) {
+  const { groups } = await loadSection(state.activeSection);
+  const group = groups.find(g => g.id === gid);
+  if (!group) return;
+  group.cards.unshift({
+    id: uuid(),
+    ...cardData,
+    createdAt: Date.now(),
+  });
+  await saveSection(state.activeSection, { groups });
+  state.expandedGroups.add(gid);
+  renderGroups();
+}
+
+async function updateCard(gid, cid, updates) {
+  const { groups } = await loadSection(state.activeSection);
+  const group = groups.find(g => g.id === gid);
+  if (!group) return;
+  const card = group.cards.find(c => c.id === cid);
+  if (!card) return;
+  Object.assign(card, updates);
+  await saveSection(state.activeSection, { groups });
+  renderGroups();
+}
+
+async function deleteCard(gid, cid) {
+  const { groups } = await loadSection(state.activeSection);
+  const group = groups.find(g => g.id === gid);
+  if (!group) return;
+  group.cards = group.cards.filter(c => c.id !== cid);
+  await saveSection(state.activeSection, { groups });
+  toast('卡片已删除');
+  renderGroups();
+}
+
+async function moveCard(gid, cid, direction) {
+  const { groups } = await loadSection(state.activeSection);
+  const group = groups.find(g => g.id === gid);
+  if (!group) return;
+  const idx = group.cards.findIndex(c => c.id === cid);
+  if (idx === -1) return;
+  if (direction === 'up' && idx > 0) {
+    [group.cards[idx - 1], group.cards[idx]] = [group.cards[idx], group.cards[idx - 1]];
+  } else if (direction === 'down' && idx < group.cards.length - 1) {
+    [group.cards[idx], group.cards[idx + 1]] = [group.cards[idx + 1], group.cards[idx]];
+  } else {
+    return; // 已在边界
+  }
+  await saveSection(state.activeSection, { groups });
+  renderGroups();
+}
+
+// ==================== 搜索 ====================
+dom.searchToggle.addEventListener('click', () => {
+  dom.searchWrap.classList.toggle('show');
+  if (dom.searchWrap.classList.contains('show')) {
+    dom.searchInput.focus();
+  } else {
+    dom.searchInput.value = '';
+    state.searchQuery = '';
+    renderGroups();
+  }
+});
+
+dom.searchInput.addEventListener('input', () => {
+  state.searchQuery = dom.searchInput.value;
+  renderGroups();
+});
+
+// ==================== 板块切换 ====================
+dom.tabsWrap.addEventListener('click', (e) => {
+  const tab = e.target.closest('.tab');
+  if (!tab) return;
+  state.activeSection = tab.dataset.section;
+  state.searchQuery = '';
+  dom.searchInput.value = '';
+  dom.searchWrap.classList.remove('show');
+  closeFab();
+  render();
+});
+
+// ==================== 设置面板 ====================
+dom.settingsToggle.addEventListener('click', showSettings);
+
+function showSettings() {
+  showOverlay(`
+    <div class="sheet-title">⚙ 设置</div>
+    <div class="settings-section">
+      <h3>数据管理</h3>
+      <div class="settings-row">
+        <span>导出全部数据</span>
+        <button class="settings-btn export-btn" id="exportBtn">📤 导出</button>
+      </div>
+      <div class="settings-row">
+        <span>导入数据</span>
+        <button class="settings-btn import-btn" id="importBtn">📥 导入</button>
+      </div>
+    </div>
+    <div class="settings-section">
+      <h3>关于</h3>
+      <div style="font-size:var(--font-xs);color:var(--sub);line-height:1.6;">
+        公考速记 v1.0<br>
+        离线可用的知识点速记工具<br>
+        数据存储在浏览器本地<br>
+        图片压缩上限：${IMG_MAX_KB / 1000}MB（优先清晰度）
+      </div>
+    </div>
+    <div class="sheet-actions">
+      <button class="sheet-btn secondary" onclick="window._hideOverlay()">关闭</button>
+    </div>
+  `);
+
+  $('#exportBtn')?.addEventListener('click', exportData);
+  $('#importBtn')?.addEventListener('click', () => {
+    dom.hiddenFileInput.click();
+  });
+}
+
+// ==================== 导出/导入 ====================
+async function exportData() {
+  const all = await dbGetAll();
+  const data = {};
+  all.forEach(row => { data[row.name] = row.data; });
+  const json = JSON.stringify(data, null, 2);
+  const blob = new Blob([json], { type:'application/json' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = `公考速记_备份_${new Date().toISOString().slice(0,10)}.json`;
+  a.click();
+  URL.revokeObjectURL(url);
+  toast('导出成功');
+}
+
+dom.hiddenFileInput.addEventListener('change', async (e) => {
+  const file = e.target.files[0];
+  if (!file) return;
+  try {
+    const text = await file.text();
+    const data = JSON.parse(text);
+    // 验证格式
+    if (typeof data !== 'object') throw new Error('无效格式');
+    for (const sec of SECTIONS) {
+      if (data[sec] && !data[sec].groups) throw new Error(`板块「${sec}」数据格式错误`);
+    }
+    // 弹出选择
+    showImportMode(data);
+  } catch (err) {
+    toast('文件格式错误：' + err.message);
+  }
+  dom.hiddenFileInput.value = '';
+});
+
+function showImportMode(data) {
+  showOverlay(`
+    <div class="confirm-box">
+      <div class="confirm-title">📥 导入数据</div>
+      <div class="confirm-text">选择导入方式：</div>
+      <div class="sheet-actions" style="flex-direction:column;">
+        <button class="sheet-btn primary" id="importMerge">合并（保留现有 + 新增内容）</button>
+        <button class="sheet-btn danger" id="importOverwrite">覆盖（替换全部数据）</button>
+        <button class="sheet-btn secondary" onclick="window._hideOverlay()">取消</button>
+      </div>
+    </div>
+  `, 'confirm-box');
+
+  $('#importMerge')?.addEventListener('click', () => doImport(data, 'merge'));
+  $('#importOverwrite')?.addEventListener('click', () => doImport(data, 'overwrite'));
+}
+
+async function doImport(data, mode) {
+  try {
+    if (mode === 'overwrite') {
+      for (const sec of SECTIONS) {
+        await saveSection(sec, data[sec] || { groups: [] });
+      }
+    } else {
+      // 合并：同名分组追加卡片，新分组直接添加
+      for (const sec of SECTIONS) {
+        if (!data[sec]) continue;
+        const existing = await loadSection(sec);
+        const existMap = new Map(existing.groups.map(g => [g.name, g]));
+        for (const g of data[sec].groups || []) {
+          if (existMap.has(g.name)) {
+            const existGroup = existMap.get(g.name);
+            const existCardIds = new Set(existGroup.cards.map(c => c.id));
+            for (const c of g.cards || []) {
+              if (!existCardIds.has(c.id)) {
+                existGroup.cards.push(c);
+              }
+            }
+          } else {
+            existing.groups.push(g);
+          }
+        }
+        await saveSection(sec, existing);
+      }
+    }
+    hideOverlay();
+    toast('导入成功');
+    render();
+  } catch (err) {
+    toast('导入失败：' + err.message);
+  }
+}
+
+// ==================== Toast/Overlay 全局 ====================
+// 点击遮罩关闭
+dom.overlay.addEventListener('click', (e) => {
+  if (e.target === dom.overlay) hideOverlay();
+});
+
+// 点击空白关闭弹出菜单
+document.addEventListener('click', (e) => {
+  if (!dom.popupMenu.contains(e.target)) hidePopup();
+  if (fabOpen && !dom.fabMenu.contains(e.target) && e.target !== dom.fabBtn) closeFab();
+});
+
+// 暴露给内联 onclick
+window._hideOverlay = hideOverlay;
+window._toggleIdiomHighlight = _toggleIdiomHighlight;
+window._importFile = _importFile;
+window._setCustomHl = _setCustomHl;
+
+// ==================== PWA 安装提示 ====================
+const installBanner = document.getElementById('installBanner');
+const installBtn = document.getElementById('installBtn');
+const installDismiss = document.getElementById('installDismiss');
+let deferredPrompt = null;
+
+function isStandalone() {
+  return window.matchMedia('(display-mode: standalone)').matches
+    || navigator.standalone
+    || document.referrer.includes('android-app://');
+}
+
+// beforeinstallprompt — HTTPS + SW 注册后触发原生安装弹窗
+window.addEventListener('beforeinstallprompt', function(e) {
+  e.preventDefault();
+  deferredPrompt = e;
+  installBanner.style.display = 'flex';
+});
+
+function showManualInstallGuide() {
+  var isIOS = /iphone|ipad|ipod/i.test(navigator.userAgent);
+  var isAndroid = /android/i.test(navigator.userAgent);
+  var isEdge = /edg/i.test(navigator.userAgent);
+
+  var guide = '';
+  if (isEdge && isAndroid) {
+    guide =
+      '<div style="font-size:var(--font-sm);line-height:1.8;">' +
+        '<b>Edge 浏览器安装：</b><br><br>' +
+        '① 点击底部中间 <b>「⋯」</b> 菜单<br><br>' +
+        '② 往下滑找到 <b>「添加到手机」</b> 或 <b>「应用」</b><br><br>' +
+        '③ 点「安装」或「添加」' +
+      '</div>';
+  } else if (isIOS) {
+    guide =
+      '<div style="font-size:var(--font-sm);line-height:1.8;">' +
+        '<b>Safari 浏览器安装：</b><br><br>' +
+        '① 点击浏览器底部 <b>分享按钮</b>（方框箭头）<br><br>' +
+        '② 滑动找到 <b>「添加到主屏幕」</b><br><br>' +
+        '③ 点击右上角「添加」' +
+      '</div>';
+  } else if (isAndroid) {
+    guide =
+      '<div style="font-size:var(--font-sm);line-height:1.8;">' +
+        '<b>Chrome 浏览器安装：</b><br><br>' +
+        '① 点击右上角 <b>⋮</b> 菜单<br><br>' +
+        '② 选择 <b>「安装应用」</b> 或 <b>「添加到主屏幕」</b><br><br>' +
+        '③ 弹窗中点击「安装」' +
+      '</div>';
+  } else {
+    guide =
+      '<div style="font-size:var(--font-sm);line-height:1.8;">' +
+        '请在浏览器菜单中选择<br>' +
+        '<b>「添加到主屏幕」</b>或<b>「安装」</b>' +
+      '</div>';
+  }
+
+  showOverlay(
+    '<div class="sheet-title">📲 安装到桌面</div>' +
+    guide +
+    '<div style="margin-top:12px;padding:10px;background:#FFF3E0;border-radius:8px;font-size:var(--font-xs);color:#E65100;line-height:1.6;">' +
+      '安装后桌面出现「公考速记」图标，离线可用。如已安装过旧版，请到<b>系统设置→应用管理</b>中先卸载。' +
+    '</div>'
+  );
+}
+
+// 页面加载后：非独立窗口则显示安装引导横幅
+if (isStandalone()) {
+  installBanner.style.display = 'none';
+} else {
+  var dismissed = localStorage.getItem('install_dismissed');
+  if (!dismissed || Date.now() - parseInt(dismissed) > 86400000) {
+    // 延迟2秒显示，避免页面初始加载时抢眼
+    setTimeout(function() { installBanner.style.display = 'flex'; }, 2000);
+  }
+}
+
+installBtn.addEventListener('click', async function() {
+  if (deferredPrompt) {
+    try {
+      await deferredPrompt.prompt();
+      var result = await deferredPrompt.userChoice;
+      if (result.outcome === 'accepted') {
+        toast('✅ 安装成功！');
+        installBanner.style.display = 'none';
+        deferredPrompt = null;
+        return;
+      }
+    } catch (e) { /* 失败则走手动引导 */ }
+  }
+  showManualInstallGuide();
+});
+
+installDismiss.addEventListener('click', function() {
+  installBanner.style.display = 'none';
+  localStorage.setItem('install_dismissed', Date.now().toString());
+});
+
+// ==================== PWA 注册 ====================
+function registerPWA() {
+  // Manifest — 动态插入，localtunnel HTTPS 下触发原生安装
+  if (!document.querySelector("link[rel=manifest]")) {
+    var link = document.createElement("link");
+    link.rel = "manifest";
+    link.href = "/gongkao-suji/manifest.json";
+    document.head.appendChild(link);
+  }
+  // Service Worker — 注册server上的/sw.js（持久URL，浏览器重启后仍有效）
+  if ('serviceWorker' in navigator) {
+    navigator.serviceWorker.register('/gongkao-suji/sw.js', { scope: '/gongkao-suji/' }).then(function(reg) {
+      // 检测到新SW时自动刷新，避免运行旧代码
+      reg.addEventListener('updatefound', function() {
+        var newWorker = reg.installing;
+        if (!newWorker) return;
+        newWorker.addEventListener('statechange', function() {
+          if (newWorker.state === 'activated' && navigator.serviceWorker.controller) {
+            toast('🔄 代码已更新，自动刷新');
+            setTimeout(function() { location.reload(); }, 1000);
+          }
+        });
+      });
+    }).catch(function(err) { console.error('SW注册失败:', err); });
+  }
+}
+
+// ==================== 公文格式种子数据 ====================
+async function seedGongwenGroup() {
+  const SEED_VER = 5;
+  const key = 'gongkao_seed_version';
+  const currentVer = parseInt(localStorage.getItem(key) || '0', 10);
+  if (currentVer >= SEED_VER) return;
+
+  const sec = '申论';
+  const data = await loadSection(sec);
+  data.groups = data.groups.filter(function(g) { return g.name !== '公文格式'; });
+
+  const now = Date.now();
+  var cards = [
+  { id: uuid(), type:'text', content: "【格式四要素】\n格式要素是公文得分基石，缺一扣分。\n\n标题：第一行居中，常用\"关于+事由+文种\"\n称谓：第二行顶格+冒号，如\"广大市民朋友们：\"\n正文：称谓下一行空两格起，开头-主体-结尾\n落款+日期：正文右下角，单位在上日期在下（XX年XX月XX日）\n\n动笔前审题五问：\n①什么文种？②以谁的名义？③写给谁？④什么目的？⑤是否标注\"不考虑格式\"？", createdAt: now-200 },
+  { id: uuid(), type:'text', content: "【通知】\n格式：标题+称谓+正文+落款+日期（五要素）\n\n正文结构：\n①通知缘由（根据/为了…现通知如下）\n②具体事项（分条列明时间、地点、内容、要求）\n③执行要求（请遵照执行/请及时传达）\n\n要点：事项清晰具体、可操作，是下行文中最常用的文种。", createdAt: now-300 },
+  { id: uuid(), type:'text', content: "【倡议书】\n格式：标题+称谓+正文+落款+日期（五要素）\n\n正文结构：\n①背景目的（当前存在问题/重要意义）\n②倡议内容（分条列出，每条一个行动）\n③呼吁号召（让我们携起手来…）\n\n要点：语言有感染力、号召力，结尾要有鼓动性。常用于社会动员、文明倡导类题目。", createdAt: now-400 },
+  { id: uuid(), type:'text', content: "【公开信】\n格式：标题+称谓+正文+落款+日期（五要素）\n\n正文结构：\n①背景说明（为什么写这封信）\n②核心观点（分点阐述立场/做法）\n③希望呼吁（恳请理解支持/欢迎监督）\n\n要点：语气庄重诚恳，兼具说理性和亲和力。常见于政府回应社会关切的场景。", createdAt: now-500 },
+  { id: uuid(), type:'text', content: "【建议书】\n格式：标题+称谓+正文+落款+日期（五要素）\n\n正文结构：\n①问题分析（现状及影响）\n②具体建议（分条，每条=措施+理由）\n③预期效果（落实后的积极意义）\n\n要点：建议具体可行、有针对性，避免空泛。常用于基层治理、公共政策类题目。", createdAt: now-600 },
+  { id: uuid(), type:'text', content: "【宣传稿】\n格式：标题+称谓+正文+落款+日期（五要素）\n\n正文结构：\n①阐明事实（是什么/为什么重要）\n②讲清道理（深入浅出，通俗易懂）\n③呼吁行动（从自身做起/积极参与）\n\n要点：标题要吸引眼球，语言通俗有感染力，善用排比、设问等修辞。", createdAt: now-700 },
+  { id: uuid(), type:'text', content: "【通报】\n格式：标题+称谓+正文+落款+日期（五要素）\n\n三大类型：\n①表彰通报：先进事迹→分析精神品质→奖励决定+号召学习\n②批评通报：错误事实→分析原因危害→处理决定+警示要求\n③情况通报：客观陈述事件→分析影响→下一步安排\n\n要点：事实准确、表述客观、定性恰当。", createdAt: now-800 },
+  { id: uuid(), type:'text', content: "【讲话稿/发言稿】\n格式：标题+称谓+正文（无落款，三要素）\n\n正文结构：\n①问候开场（大家好/各位领导同志…）\n②主体分论（3点为宜，每点有观点有事例）\n③致谢结尾（我的发言完毕，谢谢大家）\n\n要点：注意身份定位和场合，语言口语化但不随意，可适当引用金句。", createdAt: now-900 },
+  { id: uuid(), type:'text', content: "【讲解稿/推介材料】\n格式：标题+称谓+正文（无落款）\n\n正文结构：\n①欢迎引入（欢迎大家来到…）\n②分点介绍（特点、优势、亮点，每点独立成段）\n③总结感谢（以上是我的介绍，谢谢大家）\n\n要点：面向听众，语言亲切自然，条理清晰，重点突出核心卖点或特色。", createdAt: now-1000 },
+  { id: uuid(), type:'text', content: "【报告】\n格式：标题+正文（无称谓/落款，两要素）\n\n正文结构：\n①情况概述（背景+总体判断）\n②主体内容（进展/问题/经验/数据，分段叙述）\n③结尾（以上报告，请审阅 / 特此报告）\n\n要点：向上级汇报工作，客观真实、条理清楚、数据准确。典型上行文。", createdAt: now-1100 },
+  { id: uuid(), type:'text', content: "【调研报告】\n格式：标题+正文（两要素）\n\n正文结构：\n①调研背景（目的、对象、方式、时间）\n②基本情况（客观事实+数据呈现）\n③分析研究（归纳问题、剖析原因）\n④对策建议（针对性强、可操作）\n\n要点：以事实和数据为基础，分析有深度，对策有针对。切忌只罗列不分析。", createdAt: now-1200 },
+  { id: uuid(), type:'text', content: "【简报】\n格式：标题+正文（两要素）\n\n正文结构：\n①开篇直切主题（导语一句话概括）\n②主体展开（按时间/逻辑顺序）\n③结尾（简短小结或自然收束）\n\n要点：短小精悍、一事一报、反应迅速。控制在300-500字，切忌长篇大论。", createdAt: now-1300 },
+  { id: uuid(), type:'text', content: "【新闻稿】\n格式：标题+正文（两要素）\n\n正文结构（倒金字塔）：\n①导语：5W1H（何时何地何人何事何因+怎样）\n②主体：展开详述，重要信息优先\n③背景：穿插必要背景\n④结语：补充信息或自然收尾\n\n要点：客观中立，事实准确，标题概括核心信息。", createdAt: now-1400 },
+  { id: uuid(), type:'text', content: "【短评/时评】\n格式：标题+正文（两要素，可设主副标题）\n\n正文结构：\n①引出评论对象（一句话点明话题）\n②分析论证（观点明确，论据充分）\n③结论建议（升华主题、指明方向）\n\n要点：观点鲜明、论证有力、语言犀利而不偏激。500字以内为佳。标题即观点。", createdAt: now-1500 },
+  { id: uuid(), type:'text', content: "【方案/实施方案】\n格式：标题+正文（两要素）\n\n正文结构：\n①目的意义（为…特制定本方案）\n②基本要素（主题、时间、地点、参与范围）\n③实施步骤（分阶段，每阶段具体任务）\n④保障措施（组织/经费/督导）\n\n要点：操作性强、步骤清晰、责任明确。多用于组织活动或专项工作的策划。", createdAt: now-1600 },
+  { id: uuid(), type:'text', content: "【编者按】\n格式：仅正文（无标题/称谓/落款）\n\n正文结构：\n以\"【编者按】\"开头→背景介绍（为什么编发）→内容评价（核心看点/价值）→阅读引导（敬请关注/欢迎讨论）\n\n要点：置于文章最前，100-200字足矣。画龙点睛，不重复原文内容。申论中偶有考察。", createdAt: now-1700 },
+  { id: uuid(), type:'text', content: "【函】\n格式：标题+称谓+正文+落款+日期（五要素）\n\n正文结构：\n①发函缘由（为…特致函）\n②具体事项（商洽/询问/答复的内容，分条）\n③结尾敬语（请予函复/特此函告）\n\n要点：平行文，用于不相隶属机关之间。语气谦和、简明扼要。分为商洽函、询问函、答复函。", createdAt: now-1800 },
+  { id: uuid(), type:'text', content: "【请示】\n格式：标题+称谓+正文+落款+日期（五要素）\n\n正文结构：\n①请示缘由（充分说明必要性）\n②请示事项（明确具体，一事一请）\n③结尾（妥否，请批示/以上请示，请审批）\n\n要点：上行文，一事一请原则。缘由要充分，事项要明确。与\"报告\"勿混淆，请示是请求批准。", createdAt: now-1900 },
+  { id: uuid(), type:'text', content: "【纪要】\n格式：标题+正文（两要素）\n\n正文结构：\n①会议概况（时间、地点、主持人、出席人）\n②会议内容（议题讨论情况，按发言要点归纳）\n③决定事项（会议形成的共识和决议）\n④结尾（出席人名单可附后）\n\n要点：客观记录而非照搬原话，概括提炼会议精神和决定。", createdAt: now-2000 },
+  { id: uuid(), type:'text', content: "【批复】\n格式：标题+称谓+正文+落款+日期（五要素）\n\n正文结构：\n①引述（你单位《…请示》收悉）\n②批复意见（经研究，同意/原则同意/不同意+理由）\n③要求（请认真组织实施/请及时报告进展）\n\n要点：针对请示作出答复，态度明确、条理清晰。同意要说明如何执行，不同意要给出理由。", createdAt: now-2100 },
+  { id: uuid(), type:'text', content: "【公告/通告】\n格式：标题+正文（两要素）\n\n正文结构：\n①发布依据（根据…）\n②具体事项（公告/通告的核心内容）\n③执行说明（自发布之日起施行/请互相转告）\n\n要点：公告面向社会公众，通告面向特定范围。语言庄重简练，不加议论。常用于重大事项发布。", createdAt: now-2200 }
+  ];
+
+  data.groups.push({
+    id: 'seed-gongwen-' + uuid(),
+    name: '公文格式',
+    cards: cards,
+    createdAt: now - 2300,
+  });
+
+  await saveSection(sec, data);
+  localStorage.setItem('gongkao_seed_version', String(SEED_VER));
+}
+
+// ==================== 成语数据：从记录本加载/导入 ====================
+// 全量替换成语/实词组（唯一数据写入点）
+async function fullReplaceIdioms(cyCards, swCards) {
+  var sec = state.activeSection;
+  var data = await loadSection(sec);
+  // 移除旧的成语/实词组
+  data.groups = data.groups.filter(function(g) { return g.name !== '成语辨析' && g.name !== '实词辨析'; });
+  // 添加新的
+  if (cyCards && cyCards.length) {
+    data.groups.push({ id: 'idiom-cy-' + uuid(), name: '成语辨析', cards: cyCards, createdAt: Date.now() - 4200 });
+  }
+  if (swCards && swCards.length) {
+    data.groups.push({ id: 'idiom-sw-' + uuid(), name: '实词辨析', cards: swCards, createdAt: Date.now() - 4100 });
+  }
+  await saveSection(sec, data);
+}
+
+// 从局域网记录本API同步成语数据
+const LAN_API = "http://192.168.1.2:3000/api/idioms";
+
+async function loadIdiomsFromAPI() {
+  try {
+    var ctrl = new AbortController();
+    var t = setTimeout(function() { ctrl.abort(); }, 5000);
+    var res = await fetch(LAN_API, { signal: ctrl.signal });
+    clearTimeout(t);
+    if (!res || !res.ok) { console.log("在线同步: HTTP " + (res ? res.status : "fail")); return; }
+    var json = await res.json();
+    if (!json.chengyu.length && !json.shici.length) { console.log("在线同步: 无数据"); return; }
+    var now = Date.now();
+    var toCards = function(list, i0) {
+      return list.map(function(item, i) {
+        return { id: uuid(), type: "text", content: item.word + "	" + item.def, createdAt: now - (i0 + i) * 100 };
+      });
+    };
+    var cyCards = toCards(json.chengyu, 0);
+    var swCards = toCards(json.shici, json.chengyu.length);
+    await fullReplaceIdioms(cyCards, swCards);
+    toast("✅ 同步完成：成语" + cyCards.length + "条、实词" + swCards.length + "条");
+    renderGroups();
+  } catch(e) { console.log("在线同步失败: " + e.message); }
+}
+
+// 成语种子数据（从记录本嵌入，SEED_VER 递增即可触发全量更新）
+async function seedIdiomGroup() {
+  const SEED_VER = 3;
+  const key = "gongkao_idiom_seed_version";
+  if (parseInt(localStorage.getItem(key) || "0", 10) >= SEED_VER) return;
+  var raw = `戮力同心	思想一致，共同努力。形容齐心合力，团结一致。
+和衷共济	比喻同心协力，克服困难。
+肝胆相照	比喻以真心相见，互相坦诚交往共事。
+群策群力	大家一起出谋出力，发挥集体的力量。
+集思广益	集中群众的智慧，广泛吸收有益的意见。
+同心合力	齐心合力，共同奋斗。
+取长补短	吸取别人的长处，来弥补自己的不足之处。
+博采众长	广泛采纳众人的长处及各方面的优点。
+亲仁善邻	与仁者亲近，与邻邦友好。
+欣欣向荣	草木茂盛，生机勃勃；比喻事业蓬勃发展，兴旺昌盛。
+生生不息	不断地生长、繁殖，生命力旺盛。
+源源不断	形容事物接连不断的状态，多用于描述物质流动或现象持续发生。
+一日千里	原形容马跑得很快，后比喻进展极快。
+突飞猛进	形容发展进步飞快，变化巨大。
+如火如荼	原比喻军容之盛，现用来形容大规模行动气势旺盛、气氛热烈。
+百花齐放	群体多元共存
+遍地开花	好的事物到处涌现或普遍发展。
+生气勃勃	富有朝气且充满活力的状态。
+丰富多彩	内容丰富，花色繁多。
+包罗万象	内容丰富 应有尽有
+源远流长	河流源头很远、水流很长；常比喻历史悠久，根底深厚。
+独辟蹊径	自己开辟一条路，比喻独创一种新风格或新方法。
+匠心独运	在文学、艺术等方面独创性地运用精巧的心思。
+别开生面	另外开创新的局面或新的形式。
+别具一格	另有一种独特的风格。
+独树一帜	比喻与众不同，自成一家。
+独一无二	侧重强调唯一性或稀少性（涉及“对比、比较”语境）
+不拘一格	不局限于一种规格或方式。
+推陈出新	去掉旧事物的糟粕，取其精华，使其向新方向发展（多指继承文化遗产）。
+异军突起	比喻突然兴起的新生力量。
+横空出世	形容人或物高大雄伟、成就卓越，或比喻卓尔不群。
+脱颖而出	比喻有才能者遇时机展现全部本领。
+崭露头角	突出显露才能，多用于形容青少年初显优异才能。
+大显身手	充分显示出本领和才能。
+牛刀小试	比喻有大本领的人，先在小事情上略展才能。
+不同凡响	形容事物不平凡，很出色。
+巧夺天工	人工的精巧胜过天然，形容技艺十分精巧。
+精美绝伦	精致美妙，无与伦比。
+无与伦比	没有能比得上的。
+无可比拟	没有可以与之相比的。
+首屈一指	表示位居第一。
+独占鳌头	比喻占首位或第一名。
+前所未有	历史上从来没有过。
+空前绝后	以前没有过，以后也不会有，形容非凡的成就或盛况。
+如履薄冰	比喻行事极为谨慎，存有戒心。
+谨言慎行	形容言行举动十分谨慎，丝毫不敢疏忽大意。
+三思而行	经过反复考虑，然后再行动；常用于形容人行事谨慎。
+字斟句酌	对每个字句进行慎重推敲的严谨态度。
+步步为营	军队每推进一步就设下一道营垒；形容防守严密，行动谨慎。
+行稳致远	行事稳健，才能走得长远。
+循序渐进	按照一定的步骤逐渐深入或提高。
+有理有据	言论或行为既包含充分理由，又具备可靠依据。
+有的放矢	目标明确
+捉襟见肘	整理一下衣襟就露出胳膊肘；比喻顾此失彼，穷于应付。
+独木难支	一根木头支持不住高大的房子，比喻一个人的力量难以支撑全局。
+鞭长莫及	虽然鞭子很长，但总不能打到马肚子上，比喻距离太远而无能为力。
+力有不逮	能力或资源不足以达成目标。
+一筹莫展	一点计策也施展不出，一点办法也想不出来。
+走投无路	比喻陷入绝境，没有出路。
+无所适从	不知听从哪一个好，指不知怎么办才好。
+六神无主	形容心慌意乱，拿不定主意。
+群龙无首	比喻众人中没有领头的人。
+举棋不定	比喻做事犹豫不决，拿不定主意。
+悬而未决	一直搁置着，没有得到解决。
+积重难返	长期形成的不良习惯、弊端，不易改变。
+难以维系	状态或关系的稳定性受到挑战，难以保持。
+脚踏实地	比喻做事踏实，认真。
+真抓实干	真正地去把握并切实地做好某件事情。
+以身作则	以自身的实际行动给人做出榜样。
+严于律己	对自我进行严格的要求。
+一马当先	原指作战时策马冲锋在前；形容领先，积极带头。
+挺身而出	勇敢地站出来担当。
+全力以赴	将全部精力投入某件事物之中。
+不遗余力	把所有力量都使出来，一点也不保留。
+竭尽全力	用尽全部的力量，形容做出最大努力。
+破釜沉舟	比喻下定决心，不顾一切干到底。
+勇往直前	勇敢地一直向前进。
+乘风破浪	比喻志向远大，不惧艰险，奋勇向前。
+所向披靡	比喻力量所达到的地方，一切障碍全被扫除。
+锋芒毕露	形容锐气和才华完全显露，多指人好表现自己。
+不假思索	用不着想，形容说话做事迅速。
+毫不犹豫	形容人在处理事情时态度果断、毫不迟疑。
+千方百计	想尽种种办法，用出种种计谋。
+难能可贵	做到了难做之事，十分可贵。
+一成不变	一经形成，不再改变。
+十全十美	十分完美，毫无欠缺。
+不可多得	形容非常稀少，很不容易得到。
+来之不易	取得财物或成功不容易。
+空穴来风	有孔洞便会进风，原比喻消息和传闻的产生都是有原因和根据的；现多指消息和传说毫无根据（两种用法均存在）。
+潜移默化	指人的思想、性格在不知不觉中受到感染、影响而发生变化。
+自然而然	不经外力作用而如此。
+不知不觉	没有意识到，没有觉察到。
+变化多端	形容变化极多，也指变化很大。
+千变万化	形容变化极多。
+五花八门	种类繁多且差异大（侧重混杂）
+各种各样	许多不同的样式或种类。
+来势汹汹	动作或事物到来的气势很厉害。
+比比皆是	到处都是，形容极其常见。
+大行其道	指某种新潮事物流行盛行。
+屡禁不止	多次禁止仍不停止。
+一帆风顺	船挂满帆，一路顺风行驶；比喻非常顺利，没有阻碍。
+理所当然	从道理上说应当这样。
+习以为常	常做某种事情或常见某种现象，成了习惯，就觉得平常了。
+扑朔迷离	形容事情错综复杂，难以辨别真相。
+众说纷纭	各有各的说法，议论纷纷。
+支离破碎	形容事物零散破碎、不成整体。
+渐行渐远	慢慢离开原来的方向。
+恍如隔世	形容因人事或景物变化巨大而产生的时空疏离感，多用于表达沧桑变迁。
+兼收并蓄	把不同内容、不同性质的东西收下来，保存起来。
+无懈可击	没有一点弱点可以让人攻击，形容十分严密。
+因地制宜	地域性适配（存在空间差异）
+量体裁衣	针对性设计（强调个体需求）
+反客为主	变被动为主动，慢慢掌控局面。
+避实击虚	避开敌人的主力，找敌人的弱点进攻；也指谈问题回避要害。
+声东击西	表面上声称攻打东边，实际上却攻打西边。
+暗度陈仓	比喻出其不意、从旁突击的战略或暗中进行的活动。
+刮骨疗毒	指彻底治疗，从根本上解决问题。
+手到病除	刚动手治疗病就除去；比喻工作做得好，解决问题迅速。
+猛药去疴	形容采取强有力的措施或手段，迅速彻底地解决严重的问题或疾病。
+惩前毖后	批判以前所犯的错误，吸取教训，使以后谨慎不再犯。
+以儆效尤	通过惩治个别事例警醒他人勿效仿过错。
+杀一儆百	处死一个人，借以警戒许多人。
+严惩不贷	严厉惩罚，绝不宽恕。
+讽一劝百	通过委婉含蓄的批评方式，指责一人以教育众人。
+借古讽今	借评论古代的人和事影射、讽刺现实。
+针砭时弊	像医病一样，指出时代和社会问题，求得改正向善。
+一举两得	做一件事，同时收获两方面的好处。
+闭门造车	不管客观情况如何，只凭主观愿望办事。
+墨守成规	思想保守，守着老规矩不肯改变。
+坐井观天	坐在井里看天，比喻眼界小、见识少。
+泥古不化	拘泥于古代的制度或说法而不知变通。
+纸上谈兵	比喻空谈理论，不能解决实际问题。
+画饼充饥	比喻用空想来安慰自己或欺骗别人。
+子虚乌有	指假设而非实有的事物。
+不经之谈	指荒诞无稽、没有根据的话。
+痴人说梦	凭借想象胡言乱语。
+道听途说	道路上听来又在道路上传播出去；比喻毫无根据的传闻。
+断章取义	不顾全篇内容，孤立地取其中一段或一句的意思；指引文与原文不符。
+随声附和	缺乏独立见解，盲目跟随他人言论。
+自以为是	总以为自己是对的，不接受别人意见。
+自欺欺人	欺骗自己，也欺骗别人。
+掩耳盗铃	比喻自己欺骗自己，明明掩盖不住偏要掩盖。
+欲盖弥彰	想掩盖坏事真相，结果反而更明显。
+有始无终	做事有开始无结尾，不能坚持到底。
+前功尽弃	以往的功劳全部废弃。
+束之高阁	弃之不用或置之不理。
+置之不理	将事物搁置一旁不予理睬。
+错失良机	因未能及时行动而失去良好的机会。
+误入歧途	因受迷惑而走上错误道路。
+恣意妄为	随心所欲，胡作非为。
+徇私枉法	迁就私情，违反法纪。
+肆无忌惮	非常放肆，毫无顾忌。
+随心所欲	一切由着自己心意，想怎么做就怎么做。
+威逼利诱	用暴力威胁，用利益引诱。
+无孔不入	比喻有空子就钻。
+天马行空	形容言行 书法等气势豪放 不受拘束
+自说自话	独自决定或自言自语。
+相提并论	把不同的人或事放在一起谈论或看待。
+同日而语	放在同一时间谈论，指相提并论。
+分庭抗礼	比喻平起平坐、地位相等或互相对立。
+并驾齐驱	比喻彼此力量、才能、成绩等不相上下。
+与众不同	跟大家不一样。
+难以捉摸	不好揣测，不好判断。
+神秘莫测	非常神秘，难以推测。
+豁然开朗	由狭窄阴暗一变而为宽阔明亮，比喻顿时通达领悟。
+心旷神怡	心情舒畅 精神愉悦（多和“景色”搭配）
+耳目一新	所见所闻与以往不同，令人感到新鲜。
+心悦诚服	诚心诚意地服从或佩服。
+博大精深	形容思想和学术广博高深。
+言近旨远	话语浅近，含义深远。
+一以贯之	用一种思想或理论贯穿始终。
+敝帚自珍	自己的东西虽然并不好或不贵重，但自己爱惜。
+薄如蝉翼	形容非常薄，像蝉的翅膀一样。
+轻如鸿毛	比喻非常轻微或没有价值。
+开疆拓土	开拓疆域，扩展领土。
+必由之路	必定要经过的道路，引申为事物发展必须遵循的规律或必须经历的过程。
+重中之重	所有重要事项中最为关键的部分。
+当务之急	当前任务中最急切要做的事。
+题中之义	题目蕴含的核心要义。
+众矢之的	比喻大家共同攻击的目标。
+波澜壮阔	多形容历史（eg:发展史、改革史）
+青黄不接	后继的人力、财力出现了暂断
+难以为继	事业、生活继续不下去了
+半青半黄	事物还未达到成熟阶段
+东窗事发	指阴谋、罪行败露
+寸步难行	处境极其艰难
+画地为牢	自己给自己限制住了，只在规定范围内活动
+如鱼得水	有所凭借，找到了依靠
+独善其身	只顾自己不管别人
+明哲保身	保全自己（一种处事态度，eg:xx人员啥也不干，推卸责任）
+兼听则明	广泛听取意见才能得到正确的看法
+连成一气	站在同一战线，互通声息，互相回护
+洛阳纸贵	好的著作风行一时 流传广泛
+雄心勃勃	雄心很大 很有理想
+大张旗鼓	声势 规模很大；比喻公开
+别无长物	再也没有别的多余的东西；生活简朴 贫穷
+如法炮制	比喻照样仿作
+反躬自问	比喻主动检查自己有无过错
+口碑载道	群众口口声声称颂 一路上都能听到
+不分畛域	不分界限 范围或不分彼此
+淋漓尽致	很痛快 爽
+酣畅淋漓	非常透彻 充分 全
+席不暇暖	形容很忙 多坐一会的时间都没有
+食前方丈	吃饭面前一丈见方的地方都摆满了食物；形容生活奢侈
+不绝于耳	一直没停
+声声入耳	各种声音（类型多）
+咬文嚼字	理解文意时犯的错误
+盛气凌人	高傲 指使人的态度
+心领神会	有默契
+心中有数	有把握
+兰艾同焚	好人坏人同归于尽
+岸芷汀兰	岸边的花草；品德高尚，谦谦君子
+抱朴守拙	坚持朴实朴素的品行做事
+安身立命	生活有着落 精神有寄托（生存的本事）
+以一持万	比喻抓住一个关键，即可把握整个局面
+缀玉连珠	诗词作品优美；完美的诗词作品
+戎马倥偬	形容军务繁忙（褒义词）专指
+从善如流	乐于接受别人的劝告
+可圈可点	形容文章的精彩
+叹为观止	用“令人......”固定搭配
+感人肺腑	人内心深处被深深感动
+山穷水尽	无路可走 陷入绝境
+绝地反击	在绝境中孤注一掷的进行反抗
+焦金流石	极其炎热难耐
+伏虎降龙	使用威力使猛虎和恶龙屈服，形容力量强大
+毕雨箕风	比喻庶民喜好人主的恩泽（颂扬统治者普施仁政之词）
+集萤映雪	形容家境贫穷 勤学苦读
+蛛丝马迹	隐约可循的线索
+鸟迹虫丝	极易消失的事物
+冰肌玉骨	像冰一样的肌肤
+劲骨丰肌	形容书法笔势有力而丰润
+震天撼地	声音和声势很大
+入室开堂	（同，登堂入室）学问由浅入深 循序渐进 达到更高水平（侧重顺序、过程）
+水涨船高	事物随着它凭借基础的提高而提高（a↑b↑）
+与日俱增	形容增长的很快
+无伤大雅	对主要方面没有妨害
+无足轻重	无关紧要 不太重要
+山高水长	人的风范或声誉像高山一样存在；后比喻恩德情谊深厚
+海阔天空	形容开阔 无拘无束；或比喻言论漫无边际 没有中心
+弹冠相庆	一人做官 其他人庆幸将有官可做（贬）
+额手称庆	表示庆幸
+低头折节	丧失气节 屈服于他人
+击节赞叹	形容对别人作品的赞赏
+微言大义	含蓄微妙的语言 精深切要的义理
+千锤百炼	多次的斗争和考验
+精雕细琢	形容做事认真细致
+偏听偏信	片面的听了一方面的事就信以为真（处理事情的态度不公正）
+盲从盲信	盲目的相信 附和随从
+亦步亦趋	自己没有主张；讨好别人（跟屁虫）
+人云亦云	遇事无主见 顺从别人的意见（侧重从众）
+一应俱全	同（应有尽有）所有应该有的都有了
+无所不包	没有什么不被包括在内的（语意较重）
+心向往之	心里对某人某事物非常仰慕 想要接近或得到
+心驰神往	心神飞到向往的地方（形容非常向往）
+心旌摇荡	面对自己想要的东西拿不定主意 犹豫不决
+毋庸置喙	不用别人插嘴 不需要多话
+兹事体大	某市体制、规模非常大；某事关系重大（需要和“名词”搭配）
+一概而论	用同一标准处理或对待
+妄下结论	没有掌握根据就判断或决定某事，从而得出毫无根据的结论
+予以臧否	给予事物褒贬的评价（侧重评价人物好坏）
+唾手可得	形容非常容易得到（中性）
+驾轻就熟	强调对事物熟悉 操作轻松熟练（侧重经验和技巧的积累）
+天公地道	形容十分公平合理
+信手拈来	形容写文章时词汇和材料非常丰富，不假思索就能写出来
+南辕北辙	行动和目的是相反的（仅限于这两者关系）
+势不两立	敌对的事物不能同时存在（比喻矛盾不可调和）
+判若云泥	形容差别极大
+各自为阵	比喻不顾全局 各搞自己的一套
+颠扑不破	比喻永远不会被推翻的（eg:理论、道理）
+屡试不爽	多次试验都没有差错（多与“做法”搭配）
+闪转腾挪	在困境中快速转移 灵活应对的能力
+堂而皇之	公开或不加掩饰（贬）
+明目张胆	公开的 无所顾忌的做坏事
+有恃无恐	因有所依仗而不害怕
+此起彼伏	比喻接连不断 从不止息
+相形见绌	与另一个人或事物相比显得远远不足（内容较广）
+黯然失色	相比之下 有很大距离远远不如（强调差距）
+比上不足	同（比下有余）侧重居中
+引人入胜	非常吸引人（eg:优美的风景 文艺作品）
+此呼彼应	形容联系紧密 互相配合行动
+龙飞凤舞	山势蜿蜒雄伟；书法舒展活泼
+挥洒自如	形容画画 写作 用笔能够随心所欲
+未雨绸缪	事先做好准备工作
+防微杜渐	不让微小苗头扩大（eg:森林灭火工作）
+无可厚非	虽有缺点 但可以理解或原谅
+无可非议	没有什么可指摘的，强调事情做的妥当 正确
+人言籍籍	议论纷纷
+众口铄金	众人的言论能够融化金属，强调舆论的力量强大（eg:网暴）
+三人成虎	谣言一再重复 就会使人把谣言当成事实（注意是谣言和事实 二者关系）
+流言蜚语	没有根据的言论
+谈虎色变	一提到可怕的事物 连脸色都变了
+惴惴不安	因担心或害怕而感到不安
+心猿意马	形容心思不专 变化无常
+索然无味	形容事物枯燥无味（与“感到、觉得”搭配，当定语）
+炙手可热	比喻权势大 气焰盛 使人不敢靠近；受欢迎 很火热
+鹤立鸡群	一个人的仪表才能在周围人里显得很突出（强调突出）
+莫衷一是	各有各的意见 没有达成一致（强调不统一）
+各行其事	各搞一套（强调不顾整体）
+积非成是	长期沿袭下来的谬误会被认为是正确的
+不一而足	同类事物不止一种或一次 无法全部列举（为同一性质，不局限于所提及的）
+不胜枚举	数量多到无法逐个举例（侧重数量庞大 不要求是同类）
+层出不穷	新事物不断出现（侧重动态更新）
+大相径庭	相差很远 大不相同
+云泥之别	地位的高下差距很大
+毫无二致	完全一样
+异曲同工	不同的做法 收到同样好的效果
+深入人心	被广泛接受并形成深层认知（eg:选择）
+妇孺皆知	强调知晓范围广 不涉及认知深度
+与生俱来	先天本能（生物学特性）
+根深蒂固	后天长期形成的顽固习惯（后天习惯）
+荜门圭窦	住室极其简陋
+桑枢瓮牖	形容贫苦之家，用桑树做门窗 用瓦罐做窗户
+钟鸣鼎食	形容富贵人家生活奢侈豪华
+投机取巧	利用时机和巧妙手段谋取个人私利
+寡廉鲜耻	不廉洁 不知羞耻
+登高履危	登上高处却面临危险
+斗折蛇行	描述事物形态的曲折（eg:道路、河流）
+纤尘不染	形容十分干净 高洁
+皮里阳秋	藏在心里不说出来的评论（表面不评 内心有褒贬）
+买椟还珠	取舍不当 主次颠倒（强调“外表/形式”而放弃核心）（“具体选择”语境中）
+本末倒置	主动将次要与重要倒置了（强调整体错位）（“整体逻辑”语境中）
+临池学书	刻苦练习书法
+三日肉味	形容专心一意 全神贯注
+蓝田种玉	比喻为婚姻准备条件或缔结美好姻缘
+程门立雪	形容尊师重道 恭敬求教
+邯郸学步	比喻模仿别人不成 反而把自己原来会的东西忘了
+分崩离析	形容国家 集团或组织分裂瓦解（eg:前苏联）
+独当一面	强调独立承担责任的能力
+针锋相对	双方在策略 论点及行动方式等方面尖锐对立（注意对象是两方）
+枪林弹雨	形容激烈的战场
+直抒己见	坦率的发表自己的意见
+据理力争	根据道理极力维护自己的权益观点等（强调维护）
+相沿成习	相传下来慢慢变成了习惯
+陈陈相因	研习旧的一套 没有改进和创新（贬）
+约定俗成	经过长期实践自然形成并被认可
+循规蹈矩	守规矩（中性+贬义）
+异彩纷呈	不同形式 不同风格的事物纷纷展现精彩
+卓尔不群	强调个体的优秀
+争奇斗艳	个体竞争艳丽
+人才济济	人才数量多且集中（强调量多）
+人才辈出	人才持续涌现和代际传承（强调不断产生）
+长此以往	假设性后果，表示警示或担忧（贬）
+旷日持久	耗费时日 拖延很久（贬）
+日积月累	随时间推移逐渐积累 增长
+经年累月	单纯描述时间长久（中性）
+对症下药	精准性干预（针对问题本质）
+随机应变	灵活性反应（强调临时应对）
+习焉不察	习惯于某种事物而察觉不到其中问题
+滔滔不绝	话都不听 能说（不强调内容）（中/褒）
+口若悬河	口才好 内容有条理（强调内容优质流畅）
+巧言令色	虚伪奉承来达到目的（隐含目的性）（贬）
+油嘴滑舌	轻浮 不真诚
+能言善辩	擅长辩论 有逻辑（强调语言能力强）
+侃侃而谈	从容自信的谈论（侧重状态 神态）
+广开言路	尽量给下面提供发表意见的机会
+擘画	谋划未来的图景
+滥觞、起源、发端、发轫、肇始	（同义词）
+凝结	抽象事物的具体化（xx凝结了心血、汗水、付出、鲜血、智慧）
+凝聚	聚在一起（eg:共识、人心、力量）
+彰显	（精神）
+凸显、突显	（问题）重要性 严肃性 重要程度
+渗入，渗透	融入 进入
+浸润，浸透	泡在其中 无时无刻都在接触（eg:文化）
+发展（壮大），（培育）精神	固定搭配
+勾勒	用简单笔墨
+叙述、描绘	较为细致 详尽
+勘验	侧重于检查
+勘测	施工前的实地测量
+勘察	施工进行中
+勘探	地质（勘探），固定搭配
+深奥、艰深	（同义）高深 不易理解（不要被“艰”误导）
+晦涩	文词等隐晦不易懂（注意隐晦之意）
+感触	接触外界事物而引起思想情绪（有所感悟）
+体察	体验和观察（字面之意 没有特定语境）（eg:体察百姓生活）
+时兴	一时流行
+流量	人气值；车流 人流量（侧重数量）
+流俗	社会上流行的风俗习惯（中性）
+微妙	精深复杂 难以捉摸
+精妙	细致巧妙（侧重巧妙 刚好）
+精细	精致细密（侧重细节）
+转嫁	把自己应承受的负担 损失 罪名等加在别人身上（贬）
+挑战	面对更加确定 已经存在的问题
+担忧	对未实际发生问题的一种担心
+冷板凳	比喻长期遭受冷遇或不受重视
+风向标	发展趋势和方向 引领潮流
+聚光灯	比喻受大众的关注
+夏虫不可语冰	夏天的虫子活不到冬天，无法理解冰为何物。只受限于自身经历认知，无法理解超出经验的事物
+突破	主动打破（eg:瓶颈、技术、防线）
+束缚	被动受限（eg:传统、精神）
+压缩	物理缩减（eg:文件、工期、空间、距离）
+解放	彻底摆脱（eg:思想、民族、生产力）
+幻象	主观想象（虚幻不实）
+假象	客观存在（表象，具有欺骗性）
+错觉	感知误差（感官的错误判断）（eg:视觉、时间）
+幻觉	病理反应（无外界刺激 感知异常）（eg:精神、致幻剂）
+甄别	审查筛选（eg:人才选拔、信息过滤）
+鉴别	判断真伪 价值或性质（eg:文物鉴定 质量评估）
+识别	认出或确认（eg:技术检测 身份确认）
+辨别	比较区分不同事物的差异（侧重区分 判断）
+引导	方向性启发（具有间接性）（eg:教育 政策 舆论）
+指导	具体传授方法或知识（具有操作性和专业性）（eg:教学 技术 工作）
+左右	通过干预对事物发展施加决定性影响（控制性干预）（eg:权利干预 决策影响）
+调节	通过调整以达到平衡或适宜状态（平衡性调整）（eg:心理 生态 经济）
+因此	因果链条（一般是“客观事实+结论”）
+所以	结果推导（一般是“主观行为+结果”）
+最终	更深层 更底层（侧重时间结果）
+而	具有总括性（侧重对比、转折，还可表示并列、递进）`;
+  var lines = raw.split("\n").filter(function(l) { return l.trim(); });
+  var seenCy = {}, seenSw = {};
+  var now = Date.now();
+  for (var i = 0; i < lines.length; i++) {
+    var idx = lines[i].indexOf("\t");
+    var word = idx >= 0 ? lines[i].slice(0, idx).trim() : lines[i].trim();
+    var def = idx >= 0 ? lines[i].slice(idx + 1).trim() : "";
+    if (!word) continue;
+    if (word.length === 4) {
+      if (!seenCy[word] || def.length > (seenCy[word].content || "").split("\t")[1].length) {
+        seenCy[word] = { id: uuid(), type: "text", content: word + "\t" + def, createdAt: now - i * 100 };
+      }
+    } else {
+      if (!seenSw[word] || def.length > (seenSw[word].content || "").split("\t")[1].length) {
+        seenSw[word] = { id: uuid(), type: "text", content: word + "\t" + def, createdAt: now - i * 100 };
+      }
+    }
+  }
+  await fullReplaceIdioms(Object.values(seenCy), Object.values(seenSw));
+  localStorage.setItem(key, String(SEED_VER));
+}
+
+// 从 txt 文件导入（兜底方案）
+function _importFile() {
+  var input = document.createElement('input');
+  input.type = 'file';
+  input.accept = '.txt,text/plain';
+  input.onchange = async function(e) {
+    var file = e.target.files[0];
+    if (!file) return;
+    try {
+      var text = await file.text();
+      var lines = text.split('\n').filter(function(l) { return l.trim(); });
+      var records = lines.map(function(l) {
+        var idx = l.indexOf('\t');
+        return idx >= 0 ? [l.slice(0,idx).trim(), l.slice(idx+1).trim()] : [l.trim(), ''];
+      });
+      // 分类 + 去重（同词保留释义最长的）
+      var seenCy = {}, seenSw = {};
+      var now = Date.now();
+      for (var i = 0; i < records.length; i++) {
+        var word = records[i][0];
+        if (!word) continue;
+        var def = records[i][1] || '';
+        var card = { id: uuid(), type: 'text', content: word + '\t' + def, createdAt: now - i * 100 };
+        if (word.length === 4) {
+          if (!seenCy[word] || def.length > (seenCy[word].content || '').split('\t')[1].length) {
+            seenCy[word] = card;
+          }
+        } else {
+          if (!seenSw[word] || def.length > (seenSw[word].content || '').split('\t')[1].length) {
+            seenSw[word] = card;
+          }
+        }
+      }
+      var cyCards = Object.values(seenCy);
+      var swCards = Object.values(seenSw);
+      await fullReplaceIdioms(cyCards, swCards);
+      toast('✅ 导入完成：成语' + cyCards.length + '条、实词' + swCards.length + '条');
+      renderGroups();
+    } catch(err) {
+      toast('❌ 文件读取失败：' + err.message);
+    }
+  };
+  input.click();
+}
+
+// ==================== 手势滑动切换板块 ====================
+let touchStartX = 0, touchStartY = 0;
+dom.mainContent.addEventListener('touchstart', (e) => {
+  touchStartX = e.touches[0].clientX;
+  touchStartY = e.touches[0].clientY;
+}, { passive: true });
+
+dom.mainContent.addEventListener('touchend', (e) => {
+  const dx = e.changedTouches[0].clientX - touchStartX;
+  const dy = e.changedTouches[0].clientY - touchStartY;
+  if (Math.abs(dx) < 50 || Math.abs(dx) < Math.abs(dy)) return;
+  const curIdx = SECTIONS.indexOf(state.activeSection);
+  if (dx < 0 && curIdx < SECTIONS.length - 1) {
+    state.activeSection = SECTIONS[curIdx + 1];
+  } else if (dx > 0 && curIdx > 0) {
+    state.activeSection = SECTIONS[curIdx - 1];
+  } else return;
+  state.searchQuery = '';
+  dom.searchInput.value = '';
+  dom.searchWrap.classList.remove('show');
+  closeFab();
+  render();
+});
+
+// ==================== 初始化 ====================
+async function init() {
+  try {
+    await openDB();
+    for (const sec of SECTIONS) {
+      const existing = await dbGet(sec);
+      if (!existing.groups) {
+        await saveSection(sec, { groups: [] });
+      }
+    }
+    await seedGongwenGroup();
+    await seedIdiomGroup();
+    loadIdiomsFromAPI();
+  } catch (err) {
+    toast('存储初始化失败，请检查浏览器设置');
+    console.error(err);
+  }
+  registerPWA();
+  render();
+  // 显式缓存页面→SW Cache。localtunnel拦截页会破坏SW自动缓存，这里直接拿当前页面HTML存进去
+  if ('caches' in window) {
+    setTimeout(function() {
+      var pageHTML = '<!DOCTYPE html>\n' + document.documentElement.outerHTML;
+      caches.open('gongkao-v8').then(function(c) {
+        return c.put('/gongkao-suji/', new Response(pageHTML, {
+          headers: { 'Content-Type': 'text/html; charset=utf-8' }
+        }));
+      }).catch(function(){});
+    }, 3000);
+  }
+}
+
+async function render() {
+  renderTabs();
+  try { await renderGroups(); } catch(e) { console.error('renderGroups error:', e); }
+}
+
+init().catch(console.error);
+
+})();
+</script>
+</body>
+</html>
