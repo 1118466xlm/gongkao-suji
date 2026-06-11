@@ -461,7 +461,8 @@ let db = null;
 let state = { customHlWords: {},
   activeSection: '言语理解',
   searchQuery: '',
-  expandedGroups: new Set(), // 记住展开状态
+  expandedGroups: new Set(),
+  highlightedCards: new Set()
 };
 
 // ==================== IndexedDB ====================
@@ -780,7 +781,7 @@ function renderIdiomList(cards, gid) {
         def = def.replace(new RegExp(esc, 'g'), '<span class="hl-word">' + w + '</span>');
       });
     }
-    const hl = c.highlighted ? ' highlighted' : '';
+    const hl = state.highlightedCards.has(c.id) ? ' highlighted' : '';
     return `<div class="idiom-item${hl}" data-card-id="${c.id}" data-gid="${gid}" onclick="window._toggleIdiomHighlight('${c.id}','${gid}')"><span class="idiom-word">${word}</span><span class="idiom-def">${def}</span></div>`;
   }).join('');
   return `
@@ -792,20 +793,23 @@ function renderIdiomList(cards, gid) {
 }
 
 async function _toggleIdiomHighlight(cid, gid) {
-  // 直接操作 DOM，不重建整个页面 —— 避免丢失其他高亮状态
-  var el = document.querySelector('.idiom-item[data-card-id="' + cid + '"]');
-  if (!el) return;
-  var isNowHighlighted = !el.classList.contains('highlighted');
-  el.classList.toggle('highlighted', isNowHighlighted);
-  // 后台静默存 IndexedDB
-  loadSection(state.activeSection).then(function(data) {
-    var group = data.groups.find(function(g) { return g.id === gid; });
-    if (!group) return;
+  // 切换 state 中的高亮状态（独立于 DOM 渲染，不被 renderGroups 冲刷）
+  if (state.highlightedCards.has(cid)) {
+    state.highlightedCards.delete(cid);
+  } else {
+    state.highlightedCards.add(cid);
+  }
+  // 异步存 IndexedDB 并重渲染（renderGroups 从 Set 恢复高亮）
+  var data = await loadSection(state.activeSection);
+  var group = data.groups.find(function(g) { return g.id === gid; });
+  if (group) {
     var card = group.cards.find(function(c) { return c.id === cid; });
-    if (!card) return;
-    card.highlighted = isNowHighlighted;
-    return saveSection(state.activeSection, { groups: data.groups });
-  }).catch(function(e) { console.log('save highlight err:', e); });
+    if (card) {
+      card.highlighted = state.highlightedCards.has(cid);
+      await saveSection(state.activeSection, { groups: data.groups });
+    }
+  }
+  renderGroups();
 }
 
 async function _setCustomHl(gid, val) {
@@ -1236,10 +1240,16 @@ dom.tabsWrap.addEventListener('click', (e) => {
   if (!tab) return;
   state.activeSection = tab.dataset.section;
   state.searchQuery = '';
+  state.highlightedCards = new Set();
   dom.searchInput.value = '';
   dom.searchWrap.classList.remove('show');
   closeFab();
-  render();
+  loadSection(state.activeSection).then(function(d) {
+    (d.groups || []).forEach(function(g) {
+      (g.cards || []).forEach(function(c) { if (c.highlighted) state.highlightedCards.add(c.id); });
+    });
+    render();
+  });
 });
 
 // ==================== 设置面板 ====================
@@ -2168,6 +2178,13 @@ async function init() {
     }
     await seedGongwenGroup();
     await seedIdiomGroup();
+    // 恢复高亮状态：从当前板块的成语/实词组中读取 highlighted 词条 ID
+    var initData = await loadSection(state.activeSection);
+    (initData.groups || []).forEach(function(g) {
+      (g.cards || []).forEach(function(c) {
+        if (c.highlighted) state.highlightedCards.add(c.id);
+      });
+    });
   } catch (err) {
     toast('存储初始化失败，请检查浏览器设置');
     console.error(err);
@@ -2178,7 +2195,7 @@ async function init() {
   if ('caches' in window) {
     setTimeout(function() {
       var pageHTML = '<!DOCTYPE html>\n' + document.documentElement.outerHTML;
-      caches.open('gongkao-v8').then(function(c) {
+      caches.open('gongkao-v9').then(function(c) {
         return c.put('/gongkao-suji/', new Response(pageHTML, {
           headers: { 'Content-Type': 'text/html; charset=utf-8' }
         }));
