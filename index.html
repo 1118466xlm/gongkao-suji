@@ -813,6 +813,7 @@ async function _toggleIdiomHighlight(cid, gid) {
 
 async function _setCustomHl(gid, val) {
   var newWords = (val || '').trim();
+  // 追加而非替换：合并已有高亮词和新输入词，去重
   var existing = (state.customHlWords[gid] || '').trim();
   var all = existing ? existing.split(/\s+/) : [];
   if (newWords) {
@@ -822,8 +823,10 @@ async function _setCustomHl(gid, val) {
   }
   state.customHlWords[gid] = all.join(' ');
   await renderGroups();
+  // 输完后清空输入框
   var input = document.getElementById('hl-input-' + gid);
   if (input) input.value = '';
+  // 滚到第一个高亮词
   var firstHl = document.querySelector('.idiom-list .hl-word');
   if (firstHl) { firstHl.scrollIntoView({ behavior:'smooth', block:'center' }); }
 }
@@ -2131,7 +2134,7 @@ async function init() {
     setTimeout(function() {
       var pageHTML = '<!DOCTYPE html>\n' + document.documentElement.outerHTML;
       caches.open('gongkao-v10').then(function(c) {
-        return c.put('/gongkao', new Response(pageHTML, {
+        return c.put('/gongkao-suji/', new Response(pageHTML, {
           headers: { 'Content-Type': 'text/html; charset=utf-8' }
         }));
       }).catch(function(){});
