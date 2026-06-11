@@ -91,13 +91,14 @@ body {
 /* ============ 分组 ============ */
 .group {
   margin-bottom:16px; background:var(--card); border-radius:var(--radius);
-  box-shadow:0 1px 6px rgba(0,0,0,.05); overflow:hidden;
+  box-shadow:0 1px 6px rgba(0,0,0,.05);
 }
 .group-header {
   display:flex; align-items:center; padding:14px 14px; gap:10px;
   cursor:pointer; user-select:none; position:relative;
-  background:var(--card);
+  background:var(--card); border-radius:var(--radius) var(--radius) 0 0;
 }
+.group-header.collapsed { border-radius:var(--radius); }
 .group-header::after {
   content:''; position:absolute; left:14px; right:14px; bottom:0;
   height:1px; background:var(--border);
@@ -717,7 +718,7 @@ async function renderGroups() {
       : `<div class="card-grid${isOpen ? ' open' : ''}" data-group-id="${g.id}">${renderCards({ ...g, cards: g.displayCards }, cls)}</div>`;
     return `
     <div class="group" data-group-id="${g.id}">
-      <div class="group-header" data-group-id="${g.id}">
+      <div class="group-header${isOpen ? '' : ' collapsed'}" data-group-id="${g.id}">
         <div class="group-color-bar ${cls}"></div>
         <span class="group-name">${escapeHTML(g.name)}</span>
         <span class="group-count">${g.cards.length}条</span>
@@ -791,14 +792,20 @@ function renderIdiomList(cards, gid) {
 }
 
 async function _toggleIdiomHighlight(cid, gid) {
-  var data = await loadSection(state.activeSection);
-  var group = data.groups.find(function(g) { return g.id === gid; });
-  if (!group) return;
-  var card = group.cards.find(function(c) { return c.id === cid; });
-  if (!card) return;
-  card.highlighted = !card.highlighted;
-  await saveSection(state.activeSection, { groups: data.groups });
-  renderGroups();
+  // 直接操作 DOM，不重建整个页面 —— 避免丢失其他高亮状态
+  var el = document.querySelector('.idiom-item[data-card-id="' + cid + '"]');
+  if (!el) return;
+  var isNowHighlighted = !el.classList.contains('highlighted');
+  el.classList.toggle('highlighted', isNowHighlighted);
+  // 后台静默存 IndexedDB
+  loadSection(state.activeSection).then(function(data) {
+    var group = data.groups.find(function(g) { return g.id === gid; });
+    if (!group) return;
+    var card = group.cards.find(function(c) { return c.id === cid; });
+    if (!card) return;
+    card.highlighted = isNowHighlighted;
+    return saveSection(state.activeSection, { groups: data.groups });
+  }).catch(function(e) { console.log('save highlight err:', e); });
 }
 
 async function _setCustomHl(gid, val) {
