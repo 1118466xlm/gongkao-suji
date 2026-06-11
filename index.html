@@ -812,8 +812,18 @@ async function _toggleIdiomHighlight(cid, gid) {
 }
 
 async function _setCustomHl(gid, val) {
-  state.customHlWords[gid] = val.trim();
+  var newWords = (val || '').trim();
+  var existing = (state.customHlWords[gid] || '').trim();
+  var all = existing ? existing.split(/\s+/) : [];
+  if (newWords) {
+    newWords.split(/\s+/).forEach(function(w) {
+      if (w && all.indexOf(w) < 0) all.push(w);
+    });
+  }
+  state.customHlWords[gid] = all.join(' ');
   await renderGroups();
+  var input = document.getElementById('hl-input-' + gid);
+  if (input) input.value = '';
   var firstHl = document.querySelector('.idiom-list .hl-word');
   if (firstHl) { firstHl.scrollIntoView({ behavior:'smooth', block:'center' }); }
 }
