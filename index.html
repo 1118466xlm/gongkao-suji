@@ -786,7 +786,6 @@ function renderIdiomList(cards, gid) {
     <div class="hl-input-wrap"><input class="hl-input" id="hl-input-${gid}" placeholder="输入高亮词，空格分隔" value="${escapeHTML(state.customHlWords[gid] || '')}" onchange="window._setCustomHl('${gid}', this.value)" onkeydown="if(event.key==='Enter'){this.blur();window._setCustomHl('${gid}', this.value)}"><span class="hl-hint">回车确认 ｜ 点词条标记</span></div>
     <div class="idiom-list">${items}</div>
     <div class="sync-bar" style="display:flex;gap:8px;">
-      <button class="sync-btn" onclick="loadIdiomsFromAPI()" style="flex:1;background:#4A90D9;color:#FFF;">🔄 在线同步</button>
       <button class="sync-btn" onclick="window._importFile()" style="flex:1;background:var(--s4l);color:#C97A5A;">📄 导入TXT</button>
     </div>`;
 }
@@ -1568,32 +1567,6 @@ async function fullReplaceIdioms(cyCards, swCards) {
   await saveSection(sec, data);
 }
 
-// 从局域网记录本API同步成语数据
-const LAN_API = "http://192.168.1.2:3000/api/idioms";
-
-async function loadIdiomsFromAPI() {
-  try {
-    var ctrl = new AbortController();
-    var t = setTimeout(function() { ctrl.abort(); }, 5000);
-    var res = await fetch(LAN_API, { signal: ctrl.signal });
-    clearTimeout(t);
-    if (!res || !res.ok) { console.log("在线同步: HTTP " + (res ? res.status : "fail")); return; }
-    var json = await res.json();
-    if (!json.chengyu.length && !json.shici.length) { console.log("在线同步: 无数据"); return; }
-    var now = Date.now();
-    var toCards = function(list, i0) {
-      return list.map(function(item, i) {
-        return { id: uuid(), type: "text", content: item.word + "	" + item.def, createdAt: now - (i0 + i) * 100 };
-      });
-    };
-    var cyCards = toCards(json.chengyu, 0);
-    var swCards = toCards(json.shici, json.chengyu.length);
-    await fullReplaceIdioms(cyCards, swCards);
-    toast("✅ 同步完成：成语" + cyCards.length + "条、实词" + swCards.length + "条");
-    renderGroups();
-  } catch(e) { console.log("在线同步失败: " + e.message); }
-}
-
 // 成语种子数据（从记录本嵌入，SEED_VER 递增即可触发全量更新）
 async function seedIdiomGroup() {
   const SEED_VER = 3;
@@ -2109,7 +2082,6 @@ async function init() {
     }
     await seedGongwenGroup();
     await seedIdiomGroup();
-    loadIdiomsFromAPI();
   } catch (err) {
     toast('存储初始化失败，请检查浏览器设置');
     console.error(err);
