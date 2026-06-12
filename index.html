@@ -822,11 +822,11 @@ async function _setCustomHl(gid, val) {
     });
   }
   state.customHlWords[gid] = all.join(' ');
+  // 持久化到 IndexedDB（PWA 关闭再打开不丢失）
+  dbPut('_hl_data', { words: state.customHlWords }).catch(function(){});
   await renderGroups();
-  // 输完后清空输入框
   var input = document.getElementById('hl-input-' + gid);
   if (input) input.value = '';
-  // 滚到第一个高亮词
   var firstHl = document.querySelector('.idiom-list .hl-word');
   if (firstHl) { firstHl.scrollIntoView({ behavior:'smooth', block:'center' }); }
 }
@@ -2197,6 +2197,10 @@ async function init() {
     }
     await seedGongwenGroup();
     await seedIdiomGroup();
+    // 恢复自定义高亮词（跨会话持久化）
+    var hlData = await dbGet('_hl_data');
+    if (hlData && hlData.words) { state.customHlWords = hlData.words; }
+    // 恢复高亮词条
     var initData = await loadSection(state.activeSection);
     (initData.groups || []).forEach(function(g) {
       (g.cards || []).forEach(function(c) {
